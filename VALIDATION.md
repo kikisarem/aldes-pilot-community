@@ -42,3 +42,13 @@ Firmware générique compilé pour Pico W RP2040, sans include privé. Tests de 
 Portail AP réel, écriture flash interrompue, association DHCP/statique, compatibilité USB du nouveau firmware et installation Docker/HA restent à tester sur matériel. Le firmware et les services de production n’ont pas été remplacés. Le Pi HA n’était pas joignable en SSH pendant cette préparation.
 
 Tests complémentaires : simulation de coupure après effacement et pendant programmation de la nouvelle copie ; ancienne configuration conservée. Navigateur mobile du portail et GET/POST sous préfixe ingress testés avec serveur simulé. Serveur ASGI isolé : iframe SAMEORIGIN, origine réseau hors ingress refusée, POST sans en-tête refusé. Aucun de ces essais n’émet vers la PAC.
+
+## HA Container / REST — 11 septembre 2026
+
+- Image Python 3.13 ARM64 construite sur Raspberry Pi ; Docker démarre au boot, compagnon avec `restart: unless-stopped`.
+- Package REST validé par le vérificateur de configuration HA 2026.6.4, puis chargé après redémarrage de HA.
+- Collecteur Mac arrêté et son LaunchAgent désactivé avant démarrage du compagnon : un seul collecteur actif.
+- Trois rapports21 reçus, reprise en état ready sans commande automatique pendant la migration.
+- Deux modes et quatre consignes lus dans HA identiques à la référence avant migration.
+- Tableau de bord natif créé et configuration relue via l’API WebSocket.
+- Restent à tester avec l’occupant : commande depuis HA puis contrôle IHM, changement IHM visible dans HA, coupure PAC et reboot complet du Pi avec ce déploiement. Le test de reboot PAC antérieur concernait le service Mac.

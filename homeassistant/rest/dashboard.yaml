@@ -1,0 +1,37 @@
+{
+  "title": "Ma PAC",
+  "views": [
+    {
+      "title": "PAC",
+      "path": "pac",
+      "cards": [
+        {
+          "type": "entities",
+          "title": "Modes",
+          "entities": [
+            "select.aldes_pilot_air",
+            "select.aldes_pilot_ecs"
+          ]
+        },
+        {
+          "type": "entities",
+          "title": "Consignes",
+          "entities": [
+            "number.aldes_pilot_consigne_k1",
+            "number.aldes_pilot_consigne_k2",
+            "number.aldes_pilot_consigne_k3",
+            "number.aldes_pilot_consigne_k4"
+          ]
+        },
+        {
+          "type": "entities",
+          "title": "État et vacances",
+          "entities": [
+            "sensor.aldes_pilot_rapport",
+            "button.aldes_pilot_annuler_vacances"
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -2,12 +2,12 @@
 
 Deux parcours : **HA OS avec add-on** ou **Home Assistant Container avec un conteneur compagnon**. Le Pico reste local. Home Assistant offre l’interface web et l’application mobile ; l’accès distant utilise votre accès HA existant (ou HA Cloud/Tailscale). Aucun port du Pico ne doit être redirigé vers Internet. Aucun cloud Aldes n’est nécessaire.
 
-État : sources et tests hôte préparés ; **installation réelle HA et image Docker pas encore validées**. Aucun remplacement du bridge Mac effectué. Le firmware actuel est compatible : le portail générique n’est pas un prérequis pour essayer le bridge HA.
+État : parcours REST installé sur un Raspberry Pi ARM64 avec Home Assistant Container 2026.6.4. Image Docker construite, configuration HA vérifiée, lecture réelle et entités contrôlées après migration depuis le Mac. Le parcours MQTT/add-on et le nouveau portail Wi-Fi restent à qualifier sur matériel. Le firmware actuel est compatible : le portail générique n’est pas un prérequis pour essayer le bridge HA.
 
 ## Prérequis communs
 
 - Home Assistant sur une machine allumée, connectée au même réseau que le Pico.
-- Un broker MQTT configuré dans l’intégration **MQTT** de Home Assistant, avec découverte activée. Mosquitto convient ; le broker doit imposer une authentification.
+- Pour le parcours MQTT seulement : un broker MQTT configuré dans l’intégration **MQTT** de Home Assistant, avec découverte activée. Mosquitto convient ; le broker doit imposer une authentification.
 - Adresse du Pico et token de contrôle, depuis le portail ou votre configuration privée historique.
 - **Un seul collecteur par Pico** : arrêtez le bridge Mac avant de démarrer celui de HA. Gardez son installation intacte pour revenir en arrière si nécessaire. Ne laissez pas deux services de reprise se concurrencer.
 
@@ -32,9 +32,15 @@ python3 configure.py
 docker compose up -d --build
 ```
 
-Le configurateur demande adresse/token Pico et accès à votre broker MQTT existant. Saisissez une adresse de broker accessible **depuis un conteneur** ; `localhost` désignerait le conteneur Aldes, pas celui de Mosquitto. Les données restent dans `private/` et `logs/`, persistées hors de l’image. Ces dossiers sont exclus de Git.
+Le configurateur demande adresse/token Pico. REST est le choix par défaut ; MQTT reste facultatif. Pour MQTT, il demande les accès à votre broker existant. Saisissez une adresse de broker accessible **depuis un conteneur** ; `localhost` désignerait le conteneur Aldes, pas celui de Mosquitto. Les données restent dans `private/` et `logs/`, persistées hors de l’image. Ces dossiers sont exclus de Git.
 
-Les entités MQTT apparaissent dans HA. Le diagnostic web est limité à `127.0.0.1:8771` sur l’hôte ; votre tableau de bord HA est l’interface distante. Si nécessaire, ouvrez un tunnel SSH local pour accéder au diagnostic. Aucun second portail cloud à installer.
+Pour REST, si HA utilise le réseau hôte (`network_mode: host`), copiez `homeassistant/rest/aldes_pilot.yaml` dans `/config/packages/` et ajoutez `packages: !include_dir_named packages` sous le bloc `homeassistant:` existant de `configuration.yaml`. Ne créez pas un second bloc `homeassistant`. Vérifiez la configuration avant de redémarrer HA. Aucun broker MQTT n’est requis.
+
+Si HA n’utilise pas le réseau hôte, `127.0.0.1` ne désigne pas le compagnon : adaptez le réseau Docker et les URL du package sans exposer le port à Internet. Les commandes REST utilisent l’API locale, sans PIN configuré ; seuls les utilisateurs locaux et les services ayant accès à ce port doivent être considérés comme autorisés.
+
+Le package crée deux sélecteurs, quatre consignes et un bouton d’annulation des vacances. Le capteur `sensor.aldes_pilot_rapport` doit conserver cet identifiant, utilisé par les templates. En cas de collision avec une installation existante, adaptez le générateur. Les commandes ne changent pas l’état affiché avant confirmation par le rapport PAC.
+
+Pour MQTT, les entités découvertes apparaissent dans HA. Le diagnostic web est limité à `127.0.0.1:8771` sur l’hôte ; votre tableau de bord HA est l’interface distante. Si nécessaire, ouvrez un tunnel SSH local pour accéder au diagnostic. Aucun second portail cloud à installer.
 
 ## Entités et comportement
 
@@ -61,4 +67,4 @@ Les sources de l’add-on sont régénérées par `python3 homeassistant/package
 
 Références : [configuration des apps HA](https://developers.home-assistant.io/docs/apps/configuration/), [ingress](https://developers.home-assistant.io/docs/apps/presentation/), [découverte MQTT](https://www.home-assistant.io/integrations/mqtt/).
 
-Sur l’installation de référence, l’API confirme HA Container 2026.6.4 et MQTT absent au moment de la préparation. Il faut donc préparer le broker et ajouter l’intégration MQTT avant de transférer le bridge. L’add-on HA OS ne s’installe pas dans cette instance Container.
+Sur l’installation de référence, l’API confirme HA Container 2026.6.4 et MQTT absent au moment de la préparation. Le parcours REST évite d’ajouter un broker ; MQTT demeure une alternative. L’add-on HA OS ne s’installe pas dans cette instance Container.
