@@ -99,3 +99,14 @@ La reprise matérielle supervisée avait été validée après une coupure. Cett
 
 - [Portail Wi-Fi du firmware générique](firmware/PORTAL.md) : UF2 compilé sans secrets, qualification matérielle encore nécessaire. Ne partagez jamais un UF2 personnalisé ou un dump de flash configurée.
 - [Home Assistant : add-on et Docker](homeassistant/README.md) : bridge local permanent, entités MQTT et application web/mobile HA. Parcours REST déployé sur HA Container ; lecture vérifiée. Commandes HA et parcours MQTT/add-on encore à qualifier.
+
+## Remerciements et travaux communautaires
+
+Ce projet s’appuie sur les échanges et travaux de la communauté autour d’Aldes T.One :
+
+- **tiagfernandes** : captures de référence ayant permis des comparaisons avec une passerelle réelle ; ses captures privées ne sont pas redistribuées ici.
+- **djtef / TOUG** : travaux d’analyse du protocole et échanges communautaires.
+- **saniho / aldes-bridge** : tables et travaux d’intégration ayant aidé à interpréter les modes.
+- **YannDoublet / Open-connect-box**, ainsi que les participants au fil **HACF Aldes T.One Air/AquaAIR**, pour leurs travaux et partages.
+
+Ces remerciements reconnaissent les apports aux recherches ; ils ne signifient pas que ces personnes approuvent ce dépôt, garantissent son fonctionnement ou ont placé leurs propres travaux sous sa licence. Les licences et provenances des composants effectivement inclus sont indiquées dans [THIRD_PARTY.md](THIRD_PARTY.md).
