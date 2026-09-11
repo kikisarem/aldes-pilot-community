@@ -1,5 +1,7 @@
 # Pilotage local Aldes T.One AquaAIR
 
+> **Projet personnel expérimental, indépendant et non affilié à Aldes.** Les essais décrits portent sur une installation de référence ; ils ne garantissent pas le fonctionnement sur une autre installation ou version. Le projet est partagé à titre informatif et expérimental, sans engagement de résultat, de maintenance ou d’assistance. Il peut modifier le chauffage, la climatisation et l’eau chaude sanitaire. Consultez les [conditions d’utilisation et limites](USAGE.md) et le [dossier de qualification](VALIDATION.md) avant tout essai.
+
 Interface web expérimentale pour un bridge USB Pico W. Elle affiche les consignes et modes **relus sur la PAC**, y compris les changements effectués sur l’IHM. Les changements de réglage partent uniquement sur action utilisateur. Un service distinct peut réamorcer automatiquement les rapports, sans changer les réglages.
 
 ## Fonctionnalités validées sur l’installation de référence
@@ -89,9 +91,9 @@ Le dossier communautaire est une sélection de sources anonymisées, sans secret
 
 Un envoi maximum par page et par épisode, cinq maximum par épisode, dix maximum par heure et dix minutes de reprise. Les réservations sont persistées avant émission afin qu’un plantage ne rejoue pas une commande. Fichier périmé : aucune émission. Page inconnue, délai dépassé ou erreur transport : arrêt signalé. Le verrou est partagé avec les commandes web ; le firmware conserve ses protections ARM/STOP.
 
-La reprise matérielle supervisée avait été validée après une coupure. Cette implémentation automatique est testée en simulation (20 tests Python au total), puis déployée en surveillance sans émission lorsque21 est actif. Un nouveau test de coupure reste nécessaire pour qualifier la reprise automatique de bout en bout.
+La reprise matérielle supervisée avait été validée après une coupure. Cette implémentation automatique est testée en simulation (20 tests Python au total), puis déployée en surveillance sans émission lorsque21 est actif. Une coupure PAC avec reprise automatique a ensuite été observée sur l’installation de référence ; voir VALIDATION.md. Cela ne qualifie pas toutes les installations ni le redémarrage du Pi.
 
 ## Installation simplifiée en préparation
 
 - [Portail Wi-Fi du firmware générique](firmware/PORTAL.md) : UF2 compilé sans secrets, qualification matérielle encore nécessaire. Ne partagez jamais un UF2 personnalisé ou un dump de flash configurée.
-- [Home Assistant : add-on et Docker](homeassistant/README.md) : bridge local permanent, entités MQTT et application web/mobile HA. Packaging non encore déployé sur une instance HA réelle.
+- [Home Assistant : add-on et Docker](homeassistant/README.md) : bridge local permanent, entités MQTT et application web/mobile HA. Parcours REST déployé sur HA Container ; lecture vérifiée. Commandes HA et parcours MQTT/add-on encore à qualifier.
