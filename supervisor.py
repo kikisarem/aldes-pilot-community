@@ -17,7 +17,8 @@ with (root/'private/service.lock').open('a') as lock:
  import json
  env=os.environ.copy();env.update(json.loads((root/'private/service.json').read_text()));env['PICO_CAPTURE']=str(root/'private/pico.log')
  host=env.get('PICO_HOST','127.0.0.1')
- commands={'collector':[sys.executable,str(root/'collector.py'),'--host',host,'--log',env['PICO_CAPTURE']],
+ commands={'recovery':[sys.executable,str(root/'recovery.py')],
+           'collector':[sys.executable,str(root/'collector.py'),'--host',host,'--log',env['PICO_CAPTURE']],
            'web':[sys.executable,'-m','uvicorn','app:app','--host','0.0.0.0','--port','8771','--log-level','warning']}
  try:
   while not stopping:

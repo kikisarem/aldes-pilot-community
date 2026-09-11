@@ -122,7 +122,7 @@ class Workbench:
     def __init__(self, host=PICO_HOST, port=PICO_PORT, timeout=90):
         self.host, self.port, self.timeout = host, port, timeout
 
-    def transact(self, frame: bytes, journal=lambda **kw: None) -> dict:
+    def transact(self, frame: bytes, journal=lambda **kw: None, pre_send=None) -> dict:
         capture_health()
         if DRY_RUN:
             time.sleep(1.2)
@@ -158,6 +158,8 @@ class Workbench:
             ident = int(s['last']) + 1
             armed = False
             try:
+                if pre_send is not None:
+                    pre_send()
                 journal(event='intent', txid=ident, hex=frame.hex())
                 armed = True
                 if not req('ARM').startswith('OK ARM'):
@@ -267,7 +269,12 @@ class Pilot:
             item['command_recent'] = bool(item['at'] and 0 <= time.time() - item['at'] < 120)
         available = available and observed['available'] if not DRY_RUN else available
         if not available: health['error'] = observed.get('reason') or health.get('error', 'Lecture indisponible')
-        return {'zones': zones, 'air': air, 'ecs': ecs, 'busy': self.busy, 'available': available,
+        try:
+            recovery = json.loads((self.data / 'recovery.json').read_text())
+            recovery = {k: recovery.get(k) for k in ('status', 'reason', 'last_action')}
+        except (OSError, ValueError):
+            recovery = {'status': 'watching'}
+        return {'recovery': recovery, 'zones': zones, 'air': air, 'ecs': ecs, 'busy': self.busy, 'available': available,
                 'observation': observed, 'observed': observed, 'vacation': decoded.get('vacation'), 'health': health, 'bench': bench, 'cooldown_s': max(0, int(self.cooldown - (time.time() - last_done))),
                 'labels': {'air': AIR_MODES, 'ecs': ECS_MODES}, 'dry_run': DRY_RUN,
                 'journal': self._records()[-12:]}
@@ -292,6 +299,8 @@ class Pilot:
                 except BlockingIOError:
                     return {'ok': False, 'error': 'Un autre processus utilise le banc'}
                 st = self.state()
+                if st.get('recovery', {}).get('status') == 'recovering':
+                    return {'ok': False, 'error': 'Reprise de lecture en cours'}
                 if not st['available']:
                     return {'ok': False, 'error': st['health'].get('error', 'Banc indisponible')}
                 if st['cooldown_s']:

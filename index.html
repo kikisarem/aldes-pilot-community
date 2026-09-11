@@ -208,7 +208,7 @@ function setSt(el,st,extra){el.className='st '+st.status;el.querySelector('span'
 
 function render(){
   if(!S)return;
-  const busy=sending||!!S.busy, cd=S.cooldown_s, lock=busy||cd>0||!S.available;
+  const busy=sending||!!S.busy, cd=S.cooldown_s, lock=busy||cd>0||!S.available||S.recovery?.status==='recovering';
   $('#cPico').className='chip '+(S.available?'on':'bad');$('#cPico').lastChild.textContent=S.dry_run?'Pico · simulation':'Pico';
   const capOk=S.health&&S.health.capture_age_s!=null;
   $('#cCap').className='chip '+(capOk?'on':'bad');$('#cCap').lastChild.textContent=capOk?`Capture · ${S.health.capture_age_s}s`:'Capture · absente';
@@ -216,7 +216,7 @@ function render(){
   $('#cBench').className='chip '+(bnOk?'on':'bad');$('#cBench').lastChild.textContent=S.dry_run?'Banc · simulé':bnOk?'Banc · monté':'Banc · non monté';
   $('#cPico').title=S.health.error||'Connexion au Pico disponible';
   const w=$('#warn');
-  if(!S.available&&S.health&&S.health.error){w.style.display='block';w.textContent='Envoi bloqué — '+S.health.error}else{w.style.display='none'}
+  if(!S.available&&S.health&&S.health.error){w.style.display='block';w.textContent=S.recovery?.status==='recovering'?'Reconnexion à la PAC en cours…':S.recovery?.status==='blocked'?'Reprise arrêtée — '+S.recovery.reason:'Envoi bloqué — '+S.health.error}else{w.style.display='none'}
   // air
   const am=S.air.actual; document.body.dataset.mode=modeFamily(am);
   const idx=AIR_MAIN.findIndex(x=>x[0]===am); $('#air').style.setProperty('--i',idx<0?0:idx); $('#air .ind').style.opacity=idx<0?0:.95;

@@ -20,3 +20,12 @@ Après la coupure et la remise de l’horloge sur l’IHM, Pico et collecteur se
 Reprise supervisée sans écriture de réglage : 40/20 → 25, 45/25 → 26, 46/26 → 27, 47/27 → 28, 48/28 → **21 directement**. Cinq envois uniques, chacun suivi de STOP confirmé. Au moins trois rapports21 successifs vérifient quatre consignes22, airOFF et ECS ON, conformes à la référence avant coupure. Une tentative préparée pour23 a été bloquée avant émission parce que21 était déjà actif.
 
 La séquence diffère du premier déblocage nocturne : ne pas coder une liste aveugle ni imposer un passage par23/24. Cette reprise après coupure est démontrée sur une occurrence et demeure manuelle ; aucun réamorçage USB automatique n’est activé dans le service. Les champs de températures candidates peuvent encore être nuls pendant le retour des informations de sondes ; ne pas les afficher comme des températures physiques nulles.
+
+
+## Reprise automatique ajoutée
+
+`recovery.py`, lancé par le superviseur, réamorce les rapports à partir des pages fraîches20/25/26/27/28. Il n’envoie que les cinq commandes de contrôle8octets connues, jamais0x10. Il cesse tout envoi dès21 et confirme l’état prêt après trois rapports21 distincts.
+
+Un envoi maximum par page et par épisode, cinq maximum par épisode, dix maximum par heure et dix minutes de reprise. Les réservations sont persistées avant émission afin qu’un plantage ne rejoue pas une commande. Fichier périmé : aucune émission. Page inconnue, délai dépassé ou erreur transport : arrêt signalé. Le verrou est partagé avec les commandes web ; le firmware conserve ses protections ARM/STOP.
+
+La reprise matérielle supervisée avait été validée après une coupure. Cette implémentation automatique est testée en simulation (20 tests Python au total), puis déployée en surveillance sans émission lorsque21 est actif. Un nouveau test de coupure reste nécessaire pour qualifier la reprise automatique de bout en bout.

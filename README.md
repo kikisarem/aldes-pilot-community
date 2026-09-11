@@ -1,6 +1,6 @@
 # Pilotage local Aldes T.One AquaAIR
 
-Interface web expérimentale pour un bridge USB Pico W. Elle affiche les consignes et modes **relus sur la PAC**, y compris les changements effectués sur l’IHM. Les commandes partent uniquement sur action utilisateur.
+Interface web expérimentale pour un bridge USB Pico W. Elle affiche les consignes et modes **relus sur la PAC**, y compris les changements effectués sur l’IHM. Les changements de réglage partent uniquement sur action utilisateur. Un service distinct peut réamorcer automatiquement les rapports, sans changer les réglages.
 
 ## Fonctionnalités validées sur l’installation de référence
 
@@ -45,7 +45,7 @@ La durée de vie du collecteur est indépendante de celle du serveur web. Si le 
 ## Tests sans appareil
 
 ```sh
-python3 -m unittest test_reader test_pilot -v
+python3 -m unittest test_reader test_pilot test_recovery -v
 ```
 
 Les tests couvrent le réassemblage, la somme, les ruptures de session, la fraîcheur, la rotation/troncature, les changements extérieurs sans écriture et les masques des commandes.
@@ -81,3 +81,12 @@ La PAC de référence présente un décalage entre date et jour de semaine. Les 
 ## Avant diffusion
 
 Le dossier communautaire est une sélection de sources anonymisées, sans secrets ni captures privées. La diffusion reste privée pendant la qualification. Licence du code original à choisir avant diffusion publique ; conserver les notices des composants tiers. Des essais sur d’autres installations restent nécessaires.
+
+
+## Reprise automatique ajoutée
+
+`recovery.py`, lancé par le superviseur, réamorce les rapports à partir des pages fraîches20/25/26/27/28. Il n’envoie que les cinq commandes de contrôle8octets connues, jamais0x10. Il cesse tout envoi dès21 et confirme l’état prêt après trois rapports21 distincts.
+
+Un envoi maximum par page et par épisode, cinq maximum par épisode, dix maximum par heure et dix minutes de reprise. Les réservations sont persistées avant émission afin qu’un plantage ne rejoue pas une commande. Fichier périmé : aucune émission. Page inconnue, délai dépassé ou erreur transport : arrêt signalé. Le verrou est partagé avec les commandes web ; le firmware conserve ses protections ARM/STOP.
+
+La reprise matérielle supervisée avait été validée après une coupure. Cette implémentation automatique est testée en simulation (20 tests Python au total), puis déployée en surveillance sans émission lorsque21 est actif. Un nouveau test de coupure reste nécessaire pour qualifier la reprise automatique de bout en bout.

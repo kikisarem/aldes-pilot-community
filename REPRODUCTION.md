@@ -83,7 +83,7 @@ Séquence observée sur la référence, en contrôlant un rapport complet entre 
 | 23 | `fd fa 08 ff 43 23 fe 9e` | 24 |
 | 24 | Écriture d’une consigne connue, puis retour | Rapport 21 avec consigne correspondante |
 
-Le dernier passage est une vraie modification de consigne, pas une lecture neutre. Il doit être choisi et observé par l’occupant. Les générateurs `frame_setpoint`, `frame_air`, `frame_ecs` dans `pico.py` construisent les champs validés. `firmware/workbench.py --host ADRESSE_PICO send --hex '…'` permet un envoi explicite unique, avec journal et STOP ; aucune commande de cette table n’est déclenchée à l’installation.
+Le dernier passage est une vraie modification de consigne, pas une lecture neutre. Il doit être choisi et observé par l’occupant. Les générateurs `frame_setpoint`, `frame_air`, `frame_ecs` dans `pico.py` construisent les champs validés. `firmware/workbench.py --host ADRESSE_PICO send --hex '…'` permet un envoi explicite unique, avec journal et STOP ; le service de reprise automatique ajouté ci-dessous peut envoyer les cinq messages de contrôle connus ; il ne déclenche jamais une écriture de consigne.
 
 Pour observer hors ligne :
 
@@ -102,3 +102,12 @@ Ne pas extrapoler les températures candidates aux pièces sans test physique. L
 ## Démarrage automatique
 
 Voir `macos/README.md` pour le lanceur macOS. Le démarrage à l’ouverture de session du Mac ne prouve pas la reprise automatique du protocole après une coupure PAC. Garder ces deux sujets séparés.
+
+
+## Reprise automatique ajoutée
+
+`recovery.py`, lancé par le superviseur, réamorce les rapports à partir des pages fraîches20/25/26/27/28. Il n’envoie que les cinq commandes de contrôle8octets connues, jamais0x10. Il cesse tout envoi dès21 et confirme l’état prêt après trois rapports21 distincts.
+
+Un envoi maximum par page et par épisode, cinq maximum par épisode, dix maximum par heure et dix minutes de reprise. Les réservations sont persistées avant émission afin qu’un plantage ne rejoue pas une commande. Fichier périmé : aucune émission. Page inconnue, délai dépassé ou erreur transport : arrêt signalé. Le verrou est partagé avec les commandes web ; le firmware conserve ses protections ARM/STOP.
+
+La reprise matérielle supervisée avait été validée après une coupure. Cette implémentation automatique est testée en simulation (20 tests Python au total), puis déployée en surveillance sans émission lorsque21 est actif. Un nouveau test de coupure reste nécessaire pour qualifier la reprise automatique de bout en bout.
