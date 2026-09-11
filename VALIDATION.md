@@ -52,3 +52,7 @@ Tests complémentaires : simulation de coupure après effacement et pendant prog
 - Deux modes et quatre consignes lus dans HA identiques à la référence avant migration.
 - Tableau de bord natif créé et configuration relue via l’API WebSocket.
 - Restent à tester avec l’occupant : commande depuis HA puis contrôle IHM, changement IHM visible dans HA, coupure PAC et reboot complet du Pi avec ce déploiement. Le test de reboot PAC antérieur concernait le service Mac.
+
+## Affichage HA pendant le délai entre commandes
+
+Les templates REST rendaient les entités indisponibles pendant les 45 secondes de cooldown. Correction : disponibilité de lecture fondée sur un rapport frais ; garde d’envoi distincte conservée. Cinq scénarios vérifiés avec Jinja dans le conteneur HA (cooldown, envoi actif, reprise, lecture absente, état prêt). Configuration complète vérifiée puis templates rechargés sans redémarrage HA ni commande PAC. Mesure du délai visible après une nouvelle commande utilisateur encore à effectuer.

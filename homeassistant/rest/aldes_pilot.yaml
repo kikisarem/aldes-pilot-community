@@ -69,14 +69,24 @@
         {
           "name": "Aldes Pilot AIR",
           "unique_id": "aldes_pilot_rest_air",
-          "availability": "{{ is_state('sensor.aldes_pilot_rapport', 'online') and not state_attr('sensor.aldes_pilot_rapport', 'busy') and (state_attr('sensor.aldes_pilot_rapport', 'cooldown_s') | float(0)) <= 0 and (state_attr('sensor.aldes_pilot_rapport', 'recovery') or {}).get('status') != 'recovering' }}",
+          "availability": "{{ is_state('sensor.aldes_pilot_rapport', 'online') }}",
           "optimistic": false,
           "options": "{{ [\"Arrêt\", \"Chauffage Confort\", \"Chauffage Éco\", \"Chauffage Programme A\", \"Chauffage Programme B\", \"Clim Confort\", \"Clim Boost\", \"Clim Programme C\", \"Clim Programme D\"] }}",
           "state": "{% set v = (state_attr('sensor.aldes_pilot_rapport', 'air') or {}).get('actual') %}{{ [\"Arrêt\", \"Chauffage Confort\", \"Chauffage Éco\", \"Chauffage Programme A\", \"Chauffage Programme B\", \"Clim Confort\", \"Clim Boost\", \"Clim Programme C\", \"Clim Programme D\"][v] if v is integer and 0 <= v < 9 else none }}",
           "select_option": [
             {
-              "condition": "template",
-              "value_template": "{{ is_state('sensor.aldes_pilot_rapport', 'online') and not state_attr('sensor.aldes_pilot_rapport', 'busy') and (state_attr('sensor.aldes_pilot_rapport', 'cooldown_s') | float(0)) <= 0 and (state_attr('sensor.aldes_pilot_rapport', 'recovery') or {}).get('status') != 'recovering' }}"
+              "if": [
+                {
+                  "condition": "template",
+                  "value_template": "{{ not (is_state('sensor.aldes_pilot_rapport', 'online') and not state_attr('sensor.aldes_pilot_rapport', 'busy') and (state_attr('sensor.aldes_pilot_rapport', 'cooldown_s') | float(0)) <= 0 and (state_attr('sensor.aldes_pilot_rapport', 'recovery') or {}).get('status') != 'recovering') }}"
+                }
+              ],
+              "then": [
+                {
+                  "stop": "Commande indisponible : attendre la fin de l’envoi, de la reprise ou du délai de 45 secondes.",
+                  "error": true
+                }
+              ]
             },
             {
               "action": "rest_command.aldes_pilot_air",
@@ -110,14 +120,24 @@
         {
           "name": "Aldes Pilot ECS",
           "unique_id": "aldes_pilot_rest_ecs",
-          "availability": "{{ is_state('sensor.aldes_pilot_rapport', 'online') and not state_attr('sensor.aldes_pilot_rapport', 'busy') and (state_attr('sensor.aldes_pilot_rapport', 'cooldown_s') | float(0)) <= 0 and (state_attr('sensor.aldes_pilot_rapport', 'recovery') or {}).get('status') != 'recovering' }}",
+          "availability": "{{ is_state('sensor.aldes_pilot_rapport', 'online') }}",
           "optimistic": false,
           "options": "{{ [\"Arrêt\", \"Marche\", \"Boost\"] }}",
           "state": "{% set v = (state_attr('sensor.aldes_pilot_rapport', 'ecs') or {}).get('actual') %}{{ [\"Arrêt\", \"Marche\", \"Boost\"][v] if v is integer and 0 <= v < 3 else none }}",
           "select_option": [
             {
-              "condition": "template",
-              "value_template": "{{ is_state('sensor.aldes_pilot_rapport', 'online') and not state_attr('sensor.aldes_pilot_rapport', 'busy') and (state_attr('sensor.aldes_pilot_rapport', 'cooldown_s') | float(0)) <= 0 and (state_attr('sensor.aldes_pilot_rapport', 'recovery') or {}).get('status') != 'recovering' }}"
+              "if": [
+                {
+                  "condition": "template",
+                  "value_template": "{{ not (is_state('sensor.aldes_pilot_rapport', 'online') and not state_attr('sensor.aldes_pilot_rapport', 'busy') and (state_attr('sensor.aldes_pilot_rapport', 'cooldown_s') | float(0)) <= 0 and (state_attr('sensor.aldes_pilot_rapport', 'recovery') or {}).get('status') != 'recovering') }}"
+                }
+              ],
+              "then": [
+                {
+                  "stop": "Commande indisponible : attendre la fin de l’envoi, de la reprise ou du délai de 45 secondes.",
+                  "error": true
+                }
+              ]
             },
             {
               "action": "rest_command.aldes_pilot_ecs",
@@ -153,7 +173,7 @@
         {
           "name": "Aldes Pilot Consigne K1",
           "unique_id": "aldes_pilot_rest_k1",
-          "availability": "{{ is_state('sensor.aldes_pilot_rapport', 'online') and not state_attr('sensor.aldes_pilot_rapport', 'busy') and (state_attr('sensor.aldes_pilot_rapport', 'cooldown_s') | float(0)) <= 0 and (state_attr('sensor.aldes_pilot_rapport', 'recovery') or {}).get('status') != 'recovering' }}",
+          "availability": "{{ is_state('sensor.aldes_pilot_rapport', 'online') }}",
           "optimistic": false,
           "min": 16,
           "max": 30,
@@ -162,8 +182,18 @@
           "state": "{{ ((state_attr('sensor.aldes_pilot_rapport', 'zones') or {}).get('1') or {}).get('actual') }}",
           "set_value": [
             {
-              "condition": "template",
-              "value_template": "{{ is_state('sensor.aldes_pilot_rapport', 'online') and not state_attr('sensor.aldes_pilot_rapport', 'busy') and (state_attr('sensor.aldes_pilot_rapport', 'cooldown_s') | float(0)) <= 0 and (state_attr('sensor.aldes_pilot_rapport', 'recovery') or {}).get('status') != 'recovering' }}"
+              "if": [
+                {
+                  "condition": "template",
+                  "value_template": "{{ not (is_state('sensor.aldes_pilot_rapport', 'online') and not state_attr('sensor.aldes_pilot_rapport', 'busy') and (state_attr('sensor.aldes_pilot_rapport', 'cooldown_s') | float(0)) <= 0 and (state_attr('sensor.aldes_pilot_rapport', 'recovery') or {}).get('status') != 'recovering') }}"
+                }
+              ],
+              "then": [
+                {
+                  "stop": "Commande indisponible : attendre la fin de l’envoi, de la reprise ou du délai de 45 secondes.",
+                  "error": true
+                }
+              ]
             },
             {
               "action": "rest_command.aldes_pilot_setpoint",
@@ -198,7 +228,7 @@
         {
           "name": "Aldes Pilot Consigne K2",
           "unique_id": "aldes_pilot_rest_k2",
-          "availability": "{{ is_state('sensor.aldes_pilot_rapport', 'online') and not state_attr('sensor.aldes_pilot_rapport', 'busy') and (state_attr('sensor.aldes_pilot_rapport', 'cooldown_s') | float(0)) <= 0 and (state_attr('sensor.aldes_pilot_rapport', 'recovery') or {}).get('status') != 'recovering' }}",
+          "availability": "{{ is_state('sensor.aldes_pilot_rapport', 'online') }}",
           "optimistic": false,
           "min": 16,
           "max": 30,
@@ -207,8 +237,18 @@
           "state": "{{ ((state_attr('sensor.aldes_pilot_rapport', 'zones') or {}).get('2') or {}).get('actual') }}",
           "set_value": [
             {
-              "condition": "template",
-              "value_template": "{{ is_state('sensor.aldes_pilot_rapport', 'online') and not state_attr('sensor.aldes_pilot_rapport', 'busy') and (state_attr('sensor.aldes_pilot_rapport', 'cooldown_s') | float(0)) <= 0 and (state_attr('sensor.aldes_pilot_rapport', 'recovery') or {}).get('status') != 'recovering' }}"
+              "if": [
+                {
+                  "condition": "template",
+                  "value_template": "{{ not (is_state('sensor.aldes_pilot_rapport', 'online') and not state_attr('sensor.aldes_pilot_rapport', 'busy') and (state_attr('sensor.aldes_pilot_rapport', 'cooldown_s') | float(0)) <= 0 and (state_attr('sensor.aldes_pilot_rapport', 'recovery') or {}).get('status') != 'recovering') }}"
+                }
+              ],
+              "then": [
+                {
+                  "stop": "Commande indisponible : attendre la fin de l’envoi, de la reprise ou du délai de 45 secondes.",
+                  "error": true
+                }
+              ]
             },
             {
               "action": "rest_command.aldes_pilot_setpoint",
@@ -243,7 +283,7 @@
         {
           "name": "Aldes Pilot Consigne K3",
           "unique_id": "aldes_pilot_rest_k3",
-          "availability": "{{ is_state('sensor.aldes_pilot_rapport', 'online') and not state_attr('sensor.aldes_pilot_rapport', 'busy') and (state_attr('sensor.aldes_pilot_rapport', 'cooldown_s') | float(0)) <= 0 and (state_attr('sensor.aldes_pilot_rapport', 'recovery') or {}).get('status') != 'recovering' }}",
+          "availability": "{{ is_state('sensor.aldes_pilot_rapport', 'online') }}",
           "optimistic": false,
           "min": 16,
           "max": 30,
@@ -252,8 +292,18 @@
           "state": "{{ ((state_attr('sensor.aldes_pilot_rapport', 'zones') or {}).get('3') or {}).get('actual') }}",
           "set_value": [
             {
-              "condition": "template",
-              "value_template": "{{ is_state('sensor.aldes_pilot_rapport', 'online') and not state_attr('sensor.aldes_pilot_rapport', 'busy') and (state_attr('sensor.aldes_pilot_rapport', 'cooldown_s') | float(0)) <= 0 and (state_attr('sensor.aldes_pilot_rapport', 'recovery') or {}).get('status') != 'recovering' }}"
+              "if": [
+                {
+                  "condition": "template",
+                  "value_template": "{{ not (is_state('sensor.aldes_pilot_rapport', 'online') and not state_attr('sensor.aldes_pilot_rapport', 'busy') and (state_attr('sensor.aldes_pilot_rapport', 'cooldown_s') | float(0)) <= 0 and (state_attr('sensor.aldes_pilot_rapport', 'recovery') or {}).get('status') != 'recovering') }}"
+                }
+              ],
+              "then": [
+                {
+                  "stop": "Commande indisponible : attendre la fin de l’envoi, de la reprise ou du délai de 45 secondes.",
+                  "error": true
+                }
+              ]
             },
             {
               "action": "rest_command.aldes_pilot_setpoint",
@@ -288,7 +338,7 @@
         {
           "name": "Aldes Pilot Consigne K4",
           "unique_id": "aldes_pilot_rest_k4",
-          "availability": "{{ is_state('sensor.aldes_pilot_rapport', 'online') and not state_attr('sensor.aldes_pilot_rapport', 'busy') and (state_attr('sensor.aldes_pilot_rapport', 'cooldown_s') | float(0)) <= 0 and (state_attr('sensor.aldes_pilot_rapport', 'recovery') or {}).get('status') != 'recovering' }}",
+          "availability": "{{ is_state('sensor.aldes_pilot_rapport', 'online') }}",
           "optimistic": false,
           "min": 16,
           "max": 30,
@@ -297,8 +347,18 @@
           "state": "{{ ((state_attr('sensor.aldes_pilot_rapport', 'zones') or {}).get('4') or {}).get('actual') }}",
           "set_value": [
             {
-              "condition": "template",
-              "value_template": "{{ is_state('sensor.aldes_pilot_rapport', 'online') and not state_attr('sensor.aldes_pilot_rapport', 'busy') and (state_attr('sensor.aldes_pilot_rapport', 'cooldown_s') | float(0)) <= 0 and (state_attr('sensor.aldes_pilot_rapport', 'recovery') or {}).get('status') != 'recovering' }}"
+              "if": [
+                {
+                  "condition": "template",
+                  "value_template": "{{ not (is_state('sensor.aldes_pilot_rapport', 'online') and not state_attr('sensor.aldes_pilot_rapport', 'busy') and (state_attr('sensor.aldes_pilot_rapport', 'cooldown_s') | float(0)) <= 0 and (state_attr('sensor.aldes_pilot_rapport', 'recovery') or {}).get('status') != 'recovering') }}"
+                }
+              ],
+              "then": [
+                {
+                  "stop": "Commande indisponible : attendre la fin de l’envoi, de la reprise ou du délai de 45 secondes.",
+                  "error": true
+                }
+              ]
             },
             {
               "action": "rest_command.aldes_pilot_setpoint",
@@ -331,15 +391,35 @@
           ]
         }
       ],
+      "binary_sensor": [
+        {
+          "name": "Aldes Pilot Commandes disponibles",
+          "unique_id": "aldes_pilot_rest_commands_ready",
+          "state": "{{ is_state('sensor.aldes_pilot_rapport', 'online') and not state_attr('sensor.aldes_pilot_rapport', 'busy') and (state_attr('sensor.aldes_pilot_rapport', 'cooldown_s') | float(0)) <= 0 and (state_attr('sensor.aldes_pilot_rapport', 'recovery') or {}).get('status') != 'recovering' }}",
+          "attributes": {
+            "attente_secondes": "{{ state_attr('sensor.aldes_pilot_rapport', 'cooldown_s') | int(0) }}"
+          }
+        }
+      ],
       "button": [
         {
           "name": "Aldes Pilot Annuler vacances",
           "unique_id": "aldes_pilot_rest_vacation_clear",
-          "availability": "{{ is_state('sensor.aldes_pilot_rapport', 'online') and not state_attr('sensor.aldes_pilot_rapport', 'busy') and (state_attr('sensor.aldes_pilot_rapport', 'cooldown_s') | float(0)) <= 0 and (state_attr('sensor.aldes_pilot_rapport', 'recovery') or {}).get('status') != 'recovering' }}",
+          "availability": "{{ is_state('sensor.aldes_pilot_rapport', 'online') }}",
           "press": [
             {
-              "condition": "template",
-              "value_template": "{{ is_state('sensor.aldes_pilot_rapport', 'online') and not state_attr('sensor.aldes_pilot_rapport', 'busy') and (state_attr('sensor.aldes_pilot_rapport', 'cooldown_s') | float(0)) <= 0 and (state_attr('sensor.aldes_pilot_rapport', 'recovery') or {}).get('status') != 'recovering' }}"
+              "if": [
+                {
+                  "condition": "template",
+                  "value_template": "{{ not (is_state('sensor.aldes_pilot_rapport', 'online') and not state_attr('sensor.aldes_pilot_rapport', 'busy') and (state_attr('sensor.aldes_pilot_rapport', 'cooldown_s') | float(0)) <= 0 and (state_attr('sensor.aldes_pilot_rapport', 'recovery') or {}).get('status') != 'recovering') }}"
+                }
+              ],
+              "then": [
+                {
+                  "stop": "Commande indisponible : attendre la fin de l’envoi, de la reprise ou du délai de 45 secondes.",
+                  "error": true
+                }
+              ]
             },
             {
               "action": "rest_command.aldes_pilot_vacation_clear",

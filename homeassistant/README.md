@@ -68,3 +68,7 @@ Les sources de l’add-on sont régénérées par `python3 homeassistant/package
 Références : [configuration des apps HA](https://developers.home-assistant.io/docs/apps/configuration/), [ingress](https://developers.home-assistant.io/docs/apps/presentation/), [découverte MQTT](https://www.home-assistant.io/integrations/mqtt/).
 
 Sur l’installation de référence, l’API confirme HA Container 2026.6.4 et MQTT absent au moment de la préparation. Le parcours REST évite d’ajouter un broker ; MQTT demeure une alternative. L’add-on HA OS ne s’installe pas dans cette instance Container.
+
+### Latence et disponibilité REST
+
+La lecture reste visible pendant une commande ou le délai de 45 secondes entre deux envois, tant que le rapport est frais. Ce délai interdit seulement une nouvelle commande ; il ne retarde pas volontairement l’affichage. Le capteur binaire « Aldes Pilot Commandes disponibles » expose cette distinction. Une nouvelle commande pendant ce délai est refusée explicitement, sans mise en file. La cadence PAC observée est proche de 20 secondes, puis REST ajoute jusqu’à environ cinq secondes de polling en fonctionnement normal. Ce n’est pas un délai maximal garanti en cas de reconnexion ou de rapport manquant.

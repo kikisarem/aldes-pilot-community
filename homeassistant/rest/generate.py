@@ -6,11 +6,14 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 from mqtt_bridge import AIR, ECS
 
 REPORT = 'sensor.aldes_pilot_rapport'
-AVAILABLE = "{{ is_state('sensor.aldes_pilot_rapport', 'online') and not state_attr('sensor.aldes_pilot_rapport', 'busy') and (state_attr('sensor.aldes_pilot_rapport', 'cooldown_s') | float(0)) <= 0 and (state_attr('sensor.aldes_pilot_rapport', 'recovery') or {}).get('status') != 'recovering' }}"
+COMMAND_READY = "{{ is_state('sensor.aldes_pilot_rapport', 'online') and not state_attr('sensor.aldes_pilot_rapport', 'busy') and (state_attr('sensor.aldes_pilot_rapport', 'cooldown_s') | float(0)) <= 0 and (state_attr('sensor.aldes_pilot_rapport', 'recovery') or {}).get('status') != 'recovering' }}"
+
+AVAILABLE = "{{ is_state('sensor.aldes_pilot_rapport', 'online') }}"
 
 def action(command, data):
     return [
-        {'condition': 'template', 'value_template': AVAILABLE},
+        {'if': [{'condition': 'template', 'value_template': "{{ not (" + COMMAND_READY[3:-3] + ") }}"}],
+         'then': [{'stop': 'Commande indisponible : attendre la fin de l’envoi, de la reprise ou du délai de 45 secondes.', 'error': True}]},
         {'action': 'rest_command.aldes_pilot_' + command, 'data': data, 'response_variable': 'reply'},
         {'if': [{'condition': 'template', 'value_template': "{{ reply.status != 200 or reply.content is not mapping or not reply.content.get('ok', false) }}"}],
          'then': [{'stop': 'Commande refusée ou livraison non confirmée ; consulter Aldes Pilot.', 'error': True}]},
@@ -44,6 +47,7 @@ def package():
             'json_attributes': ['air', 'ecs', 'zones', 'recovery', 'busy', 'cooldown_s']}]}],
         'rest_command': commands,
         'template': [{'select': selects, 'number': numbers,
+            'binary_sensor': [{'name': 'Aldes Pilot Commandes disponibles', 'unique_id': 'aldes_pilot_rest_commands_ready', 'state': COMMAND_READY, 'attributes': {'attente_secondes': "{{ state_attr('sensor.aldes_pilot_rapport', 'cooldown_s') | int(0) }}"}}],
             'button': [{'name': 'Aldes Pilot Annuler vacances', 'unique_id': 'aldes_pilot_rest_vacation_clear',
                 'availability': AVAILABLE, 'press': action('vacation_clear', {})}]}]}
 
