@@ -1,5 +1,7 @@
 # Pilotage local Aldes T.One AquaAIR
 
+Code et documentation originaux sous [licence Apache-2.0](LICENSE), copyright 2026 kikisarem. Les [composants tiers](THIRD_PARTY.md) conservent leurs licences respectives.
+
 > **Projet personnel expérimental, indépendant et non affilié à Aldes.** Les essais décrits portent sur une installation de référence ; ils ne garantissent pas le fonctionnement sur une autre installation ou version. Le projet est partagé à titre informatif et expérimental, sans engagement de résultat, de maintenance ou d’assistance. Il peut modifier le chauffage, la climatisation et l’eau chaude sanitaire. Consultez les [conditions d’utilisation et limites](USAGE.md) et le [dossier de qualification](VALIDATION.md) avant tout essai.
 
 Interface web expérimentale pour un bridge USB Pico W. Elle affiche les consignes et modes **relus sur la PAC**, y compris les changements effectués sur l’IHM. Les changements de réglage partent uniquement sur action utilisateur. Un service distinct peut réamorcer automatiquement les rapports, sans changer les réglages.
@@ -82,7 +84,7 @@ La PAC de référence présente un décalage entre date et jour de semaine. Les 
 
 ## Avant diffusion
 
-Le dossier communautaire est une sélection de sources anonymisées, sans secrets ni captures privées. La diffusion reste privée pendant la qualification. Licence du code original à choisir avant diffusion publique ; conserver les notices des composants tiers. Des essais sur d’autres installations restent nécessaires.
+Le dossier communautaire est une sélection de sources anonymisées, sans secrets ni captures privées. La diffusion reste privée pendant la qualification. Licence Apache-2.0 pour le code original ; conserver LICENSE, NOTICE et les notices des composants tiers lors des redistributions applicables. Des essais sur d’autres installations restent nécessaires.
 
 
 ## Reprise automatique ajoutée
