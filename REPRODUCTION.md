@@ -70,7 +70,7 @@ Ouvrir `http://127.0.0.1:8771/`. Le lecteur s’appuie sur les RAW : les compteu
 
 ## 4. Obtenir le régime de lecture : limite encore expérimentale
 
-**Ce dépôt n’est pas encore une installation universelle en un clic.** Le firmware et l’interface se reconstruisent ; l’amorçage des rapports dépend de l’état de la PAC. Ne pas envoyer toute la liste ci-dessous comme un script aveugle.
+**Ce dépôt n’est pas encore une installation universelle en un clic.** Voir aussi le test de coupure dans [VALIDATION.md](VALIDATION.md) : reprise supervisée obtenue via25/26/27/28 puis21 directement, sans écriture de consigne. Le firmware et l’interface se reconstruisent ; l’amorçage des rapports dépend de l’état de la PAC. Ne pas envoyer toute la liste ci-dessous comme un script aveugle.
 
 Séquence observée sur la référence, en contrôlant un rapport complet entre chaque étape :
 
