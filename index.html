@@ -1,0 +1,279 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0b0d12">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Maison · Aldes</title>
+<link rel="manifest" href="/manifest.json">
+<link rel="apple-touch-icon" href="/icon-192.png">
+<link rel="icon" href="/icon-192.png">
+<style>
+:root{
+  --bg:#0b0d12;--card:rgba(255,255,255,.045);--line:rgba(255,255,255,.09);
+  --txt:#eceae6;--mut:#8b93a7;--dim:#5c6478;
+  --heat:#ffb347;--cool:#5dd6ff;--ecs:#7ee8c7;--bad:#ff6b6b;--ok:#8be28b;
+  --acc:var(--cool);--glow1:rgba(93,214,255,.18);--glow2:rgba(255,179,71,.08);
+  --ease:cubic-bezier(.2,.8,.2,1);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg);color:var(--txt);font:15px/1.45 -apple-system,BlinkMacSystemFont,"SF Pro Text",Inter,system-ui,sans-serif;min-height:100%}
+body::before{content:"";position:fixed;inset:-40vh -40vw;pointer-events:none;z-index:0;
+  background:radial-gradient(60vw 60vw at 15% 10%,var(--glow1),transparent 60%),
+             radial-gradient(70vw 70vw at 90% 95%,var(--glow2),transparent 60%);
+  transition:background 1.2s var(--ease)}
+body[data-mode="heat"]{--acc:var(--heat);--glow1:rgba(255,179,71,.20);--glow2:rgba(255,120,60,.08)}
+body[data-mode="cool"]{--acc:var(--cool);--glow1:rgba(93,214,255,.18);--glow2:rgba(120,140,255,.08)}
+body[data-mode="off"]{--acc:#9aa3b8;--glow1:rgba(150,160,190,.10);--glow2:rgba(80,90,120,.06)}
+main{position:relative;z-index:1;max-width:760px;margin:0 auto;padding:max(18px,env(safe-area-inset-top)) 18px 48px}
+
+header{display:flex;align-items:flex-end;justify-content:space-between;gap:14px;margin:8px 0 22px}
+h1{font-size:30px;font-weight:600;letter-spacing:-.02em;margin:0;line-height:1.05}
+h1 small{display:block;font-size:13px;font-weight:500;color:var(--mut);letter-spacing:.02em;margin-top:6px}
+.chips{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+.chip{display:inline-flex;align-items:center;gap:7px;padding:6px 11px;border-radius:999px;background:var(--card);border:1px solid var(--line);font-size:12px;color:var(--mut);white-space:nowrap}
+.chip i{width:7px;height:7px;border-radius:50%;background:var(--dim);box-shadow:0 0 0 0 transparent;transition:all .5s}
+.chip.on i{background:var(--ok);box-shadow:0 0 10px var(--ok)}
+.chip.bad i{background:var(--bad);box-shadow:0 0 10px var(--bad)}
+
+section{margin:0 0 20px}
+.lbl{font-size:12px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--dim);margin:0 0 10px 4px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:22px;padding:16px;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);position:relative;overflow:hidden}
+
+/* segmented */
+.seg{position:relative;display:grid;grid-auto-flow:column;grid-auto-columns:1fr;gap:4px;padding:4px;border-radius:16px;background:rgba(0,0,0,.28);border:1px solid var(--line)}
+.seg .ind{position:absolute;top:4px;bottom:4px;left:4px;width:calc((100% - 8px)/var(--n));border-radius:12px;background:var(--acc);
+  transform:translateX(calc(var(--i) * (100% + 4px)));transition:transform .45s var(--ease),background .6s;box-shadow:0 6px 24px -6px var(--acc);opacity:.95}
+.seg button{position:relative;z-index:1;appearance:none;border:0;background:none;color:var(--mut);font:inherit;font-size:12.5px;font-weight:600;padding:12px 4px;border-radius:12px;cursor:pointer;transition:color .3s,transform .15s;line-height:1.15}
+.seg button b{display:block;font-size:11px;font-weight:500;opacity:.75}
+.seg button.on{color:#0b0d12}
+.seg button:active{transform:scale(.96)}
+.seg button:disabled{opacity:.45;cursor:default}
+.more{margin-top:10px;display:flex;gap:6px;flex-wrap:wrap}
+.more button{appearance:none;border:1px solid var(--line);background:transparent;color:var(--mut);font:inherit;font-size:12px;padding:7px 11px;border-radius:999px;cursor:pointer;transition:all .25s}
+.more button.on{border-color:var(--acc);color:var(--acc)}
+.more button:disabled{opacity:.4}
+
+/* state line */
+.st{display:flex;align-items:center;gap:8px;margin-top:12px;font-size:12.5px;color:var(--mut);min-height:18px}
+.st i{width:8px;height:8px;border-radius:50%;background:var(--dim);flex:none;transition:all .4s}
+.st.pending i{background:var(--acc);animation:pulse 1.2s infinite}
+.st.delivered i{background:var(--ok);box-shadow:0 0 8px var(--ok)}
+.st.error i{background:var(--bad)}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 var(--acc)}50%{box-shadow:0 0 0 6px transparent}}
+
+/* rooms */
+.grid{display:grid;grid-template-columns:1fr;gap:12px}
+@media(min-width:600px){.grid{grid-template-columns:1fr 1fr}}
+.room{display:flex;flex-direction:column;gap:10px}
+.room h3{margin:0;font-size:15px;font-weight:600;letter-spacing:-.01em;display:flex;justify-content:space-between;align-items:baseline}
+.room h3 span{font-size:11px;font-weight:600;color:var(--dim);letter-spacing:.1em}
+.temp{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:2px 0}
+.num{font-size:52px;font-weight:300;letter-spacing:-.04em;line-height:1;font-variant-numeric:tabular-nums;display:flex;align-items:baseline;gap:4px}
+.num small{font-size:20px;color:var(--mut);font-weight:400}
+.num.bump{animation:bump .35s var(--ease)}
+@keyframes bump{0%{transform:translateY(-6px);opacity:.4}100%{transform:none;opacity:1}}
+.pm{display:flex;gap:8px}
+.pm button{width:46px;height:46px;border-radius:14px;border:1px solid var(--line);background:rgba(255,255,255,.05);color:var(--txt);font-size:24px;font-weight:300;cursor:pointer;transition:all .15s;display:grid;place-items:center}
+.pm button:active{transform:scale(.92);background:rgba(255,255,255,.12)}
+.pm button:disabled{opacity:.35}
+.send{position:relative;appearance:none;border:0;border-radius:14px;padding:13px 16px;background:var(--acc);color:#0b0d12;font:inherit;font-weight:700;font-size:14px;cursor:pointer;transition:all .3s var(--ease);display:flex;align-items:center;justify-content:center;gap:10px;overflow:hidden}
+.send:active{transform:scale(.98)}
+.send:disabled{background:rgba(255,255,255,.08);color:var(--dim);cursor:default}
+.send.busy{background:rgba(255,255,255,.08);color:var(--txt)}
+.ring{width:18px;height:18px;border-radius:50%;border:2.5px solid rgba(255,255,255,.15);border-top-color:var(--acc);animation:spin 1s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.send.dirty::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,.25),transparent);transform:translateX(-100%);animation:sheen 2.2s infinite}
+@keyframes sheen{to{transform:translateX(100%)}}
+
+/* journal */
+.jr{display:flex;flex-direction:column;gap:6px;font-size:12.5px}
+.jr div{display:grid;grid-template-columns:52px 1fr auto;gap:10px;padding:8px 10px;border-radius:12px;background:rgba(0,0,0,.2);color:var(--mut)}
+.jr div b{color:var(--txt);font-weight:500}
+.jr div em{font-style:normal;color:var(--dim)}
+.jr div.ok em{color:var(--ok)}.jr div.err em{color:var(--bad)}
+
+/* toast */
+#toast{position:fixed;left:50%;bottom:max(22px,env(safe-area-inset-bottom));transform:translate(-50%,30px);opacity:0;background:#1b1f2a;border:1px solid var(--line);color:var(--txt);padding:12px 16px;border-radius:14px;font-size:13.5px;max-width:92vw;box-shadow:0 20px 50px -20px #000;transition:all .4s var(--ease);z-index:9;pointer-events:none}
+#toast.show{transform:translate(-50%,0);opacity:1}
+#toast.err{border-color:var(--bad)}
+.note{font-size:11.5px;color:var(--dim);margin:10px 4px 0;line-height:1.5}
+.pinwrap{position:fixed;inset:0;background:rgba(11,13,18,.92);display:none;place-items:center;z-index:20}
+.pinwrap.show{display:grid}
+.pin{background:#151924;border:1px solid var(--line);border-radius:22px;padding:22px;width:min(340px,90vw);text-align:center}
+.pin input{width:100%;margin:14px 0;padding:14px;border-radius:14px;border:1px solid var(--line);background:#0b0d12;color:var(--txt);font-size:22px;text-align:center;letter-spacing:.3em}
+/* Selection represents the latest received mode, without animation lag. */
+.seg .ind{display:none}
+.seg button.on{background:var(--acc);color:#0b0d12}
+#ecs button.on{background:var(--ecs)}
+:root{--dim:#939bad}
+button:focus-visible{outline:2px solid white;outline-offset:3px}
+</style>
+</head>
+<body data-mode="cool">
+<main>
+<header>
+  <h1>Maison<small id="sub">Aldes T.One · pilotage local</small></h1>
+  <div class="chips">
+    <span class="chip" id="cPico"><i></i>Pico</span>
+    <span class="chip" id="cCap"><i></i>Capture</span>
+    <span class="chip" id="cBench"><i></i>Banc</span>
+  </div>
+</header>
+
+<section>
+  <div id="warn" style="display:none;margin:0 0 16px;padding:12px 14px;border-radius:16px;background:rgba(255,107,107,.10);border:1px solid rgba(255,107,107,.35);font-size:13px;color:#ffb3b3"></div>
+  <p class="lbl">Chauffage & climatisation</p>
+  <div class="card">
+    <div class="seg" id="air" style="--n:5;--i:0"><div class="ind"></div></div>
+    <div class="more" id="airMore"></div>
+    <div class="st" id="airSt"><i></i><span>Aucune commande envoyée</span></div>
+  </div>
+</section>
+
+<section>
+  <p class="lbl">Pièces</p>
+  <div class="grid" id="rooms"></div>
+  <p class="note">Consignes relues sur la PAC. Les changements sur l’IHM et les thermostats apparaissent au prochain rapport, normalement sous 20 secondes. Les températures des sondes restent à identifier.</p>
+</section>
+
+<section>
+  <p class="lbl">Eau chaude</p>
+  <div class="card">
+    <div class="seg" id="ecs" style="--n:3;--i:1"><div class="ind" style="background:var(--ecs);box-shadow:0 6px 24px -6px var(--ecs)"></div></div>
+    <div class="st" id="ecsSt"><i></i><span>Aucune commande envoyée</span></div>
+  </div>
+</section>
+
+<section>
+  <p class="lbl">Vacances & hors gel</p>
+  <div class="card"><p id="vacationState">Lecture en cours…</p>
+  <button class="send" id="clearVacation">Annuler la période / le hors gel</button>
+  <p class="note">Les dates affichées suivent l’horloge de la PAC. La création d’une période se fait encore sur l’IHM.</p></div>
+</section>
+<section>
+  <p class="lbl">Commandes envoyées</p>
+  <div class="card"><div class="jr" id="jr"></div></div>
+</section>
+</main>
+<div id="toast"></div>
+<div class="pinwrap" id="pinwrap"><div class="pin"><b>Code</b><input id="pinIn" inputmode="numeric" autocomplete="one-time-code"><button class="send" id="pinOk" style="width:100%">Entrer</button></div></div>
+
+<script>
+const AIR_MAIN=[[0,'Arrêt',''],[1,'Chauffage','Confort'],[2,'Chauffage','Éco'],[5,'Clim','Confort'],[6,'Clim','Boost']];
+const AIR_MORE=[[3,'Prog. A'],[4,'Prog. B'],[7,'Prog. C'],[8,'Prog. D']];
+const ECS=[[0,'Arrêt'],[1,'Marche'],[2,'Boost']];
+const ZONES=[[1,'Zone 1','K1'],[2,'Zone 2','K2'],[3,'Zone 3','K3'],[4,'Zone 4','K4']];
+const $=s=>document.querySelector(s);
+let sending=false;
+let S=null, pin=localStorage.getItem('pilotPin')||'', local={};
+const hh=t=>t?new Date(t*1000).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'}):'';
+const stTxt={idle:'État inconnu — la PAC ne le rapporte pas',pending:'Envoi en cours…',delivered:'Livrée en USB · lecture de confirmation en attente',error:'Non confirmée · vérifier sur l’IHM'};
+
+function toast(m,err){const t=$('#toast');t.textContent=m;t.className='show'+(err?' err':'');clearTimeout(t._h);t._h=setTimeout(()=>t.className='',3600)}
+async function api(p,body){
+  const r=await fetch(p,{signal:AbortSignal.timeout(body?100000:8000),method:body?'POST':'GET',headers:{'x-pilot-ui':'1','x-pilot-pin':pin,'content-type':'application/json'},body:body?JSON.stringify(body):undefined});
+  const j=await r.json().catch(()=>({}));
+  if(r.status===401){$('#pinwrap').classList.add('show');throw new Error('Code requis')}
+  if(!r.ok)throw new Error(j.error||'Serveur indisponible');
+  return j;
+}
+function modeFamily(m){return m==null?'cool':m===0?'off':m<=4?'heat':'cool'}
+
+// build segmented controls once
+function buildSeg(id,items,onpick){
+  const seg=$(id); items.forEach(([v,a,b],k)=>{const bt=document.createElement('button');bt.dataset.v=v;bt.innerHTML=a+(b?'<b>'+b+'</b>':'');bt.onclick=()=>onpick(v,k);seg.appendChild(bt)});
+}
+buildSeg('#air',AIR_MAIN,(v)=>sendAir(v));
+buildSeg('#ecs',ECS,(v)=>sendEcs(v));
+AIR_MORE.forEach(([v,l])=>{const b=document.createElement('button');b.dataset.v=v;b.textContent=l;b.onclick=()=>sendAir(v);$('#airMore').appendChild(b)});
+ZONES.forEach(([z,n,k])=>{
+  const c=document.createElement('div');c.className='card room';c.id='z'+z;
+  c.innerHTML=`<h3>${n}<span>${k}</span></h3>
+  <div class="temp"><div class="num" id="n${z}">—</div>
+  <div class="pm"><button data-d="-0.5">−</button><button data-d="0.5">+</button></div></div>
+  <button class="send" id="s${z}">Envoyer</button>
+  <div class="st" id="st${z}"><i></i><span>Aucune commande envoyée</span></div>`;
+  $('#rooms').appendChild(c);
+  c.querySelectorAll('.pm button').forEach(b=>b.onclick=()=>adj(z,parseFloat(b.dataset.d)));
+  $('#s'+z).onclick=()=>sendSet(z);
+});
+
+function fmt(t){const [a,b]=t.toFixed(1).split('.');return `${a}<small>,${b} °C</small>`}
+function adj(z,d){const cur=local[z]??(S?.zones?.[z]?.actual??22);const v=Math.min(30,Math.max(16,Math.round((cur+d)*2)/2));local[z]=v;const n=$('#n'+z);n.innerHTML=fmt(v);n.classList.remove('bump');void n.offsetWidth;n.classList.add('bump');render()}
+
+function setSt(el,st,extra){el.className='st '+st.status;el.querySelector('span').textContent=(stTxt[st.status]||'')+(st.at&&st.status!=='idle'?' · '+hh(st.at):'')+(extra||'')}
+
+function render(){
+  if(!S)return;
+  const busy=sending||!!S.busy, cd=S.cooldown_s, lock=busy||cd>0||!S.available;
+  $('#cPico').className='chip '+(S.available?'on':'bad');$('#cPico').lastChild.textContent=S.dry_run?'Pico · simulation':'Pico';
+  const capOk=S.health&&S.health.capture_age_s!=null;
+  $('#cCap').className='chip '+(capOk?'on':'bad');$('#cCap').lastChild.textContent=capOk?`Capture · ${S.health.capture_age_s}s`:'Capture · absente';
+  const bn=S.bench, bnOk=S.dry_run||(bn&&bn.mounted==='1');
+  $('#cBench').className='chip '+(bnOk?'on':'bad');$('#cBench').lastChild.textContent=S.dry_run?'Banc · simulé':bnOk?'Banc · monté':'Banc · non monté';
+  $('#cPico').title=S.health.error||'Connexion au Pico disponible';
+  const w=$('#warn');
+  if(!S.available&&S.health&&S.health.error){w.style.display='block';w.textContent='Envoi bloqué — '+S.health.error}else{w.style.display='none'}
+  // air
+  const am=S.air.actual; document.body.dataset.mode=modeFamily(am);
+  const idx=AIR_MAIN.findIndex(x=>x[0]===am); $('#air').style.setProperty('--i',idx<0?0:idx); $('#air .ind').style.opacity=idx<0?0:.95;
+  $('#air').querySelectorAll('button').forEach(b=>{b.classList.toggle('on',+b.dataset.v===am);b.disabled=lock});
+  $('#airMore').querySelectorAll('button').forEach(b=>{b.classList.toggle('on',+b.dataset.v===am);b.disabled=lock});
+  actualSt($('#airSt'),S.air,am!=null?S.labels.air[am]:'Indisponible');
+  // ecs
+  const em=S.ecs.actual; const ei=ECS.findIndex(x=>x[0]===em); $('#ecs').style.setProperty('--i',ei<0?1:ei); $('#ecs .ind').style.opacity=ei<0?0:.95;
+  $('#ecs').querySelectorAll('button').forEach(b=>{b.classList.toggle('on',+b.dataset.v===em);b.disabled=lock});
+  actualSt($('#ecsSt'),S.ecs,em!=null?S.labels.ecs[em]:'Indisponible');
+  // rooms
+  ZONES.forEach(([z])=>{const zs=S.zones[z];const shown=local[z]??zs.actual;
+    $('#n'+z).innerHTML=shown==null?'—':fmt(shown);
+    const dirty=local[z]!=null&&local[z]!==zs.actual;
+    const sb=$('#s'+z); const thisBusy=busy&&S.busy?.kind==='setpoint'&&S.busy.zone===z;
+    sb.disabled=lock||!dirty; sb.className='send'+(thisBusy?' busy':'')+(dirty&&!lock?' dirty':'');
+    sb.innerHTML=thisBusy?'<span class="ring"></span>Transmission…':cd>0&&!busy?`Attente ${cd}s`:dirty?'Envoyer':'À jour';
+    $('#z'+z).querySelectorAll('.pm button').forEach(b=>b.disabled=lock);
+    actualSt($('#st'+z),zs, zs.actual==null?'Indisponible':`PAC : ${zs.actual.toFixed(1).replace('.',',')} °C`+(local[z]!=null?' · modification à envoyer':''));
+  });
+  const obs=S.observed||{};
+  $('#cCap').className='chip '+(obs.available?'on':'bad');
+  $('#cCap').lastChild.textContent=obs.available?`PAC · il y a ${Math.round(obs.age_s)} s`:'PAC · indisponible';
+  const v=S.vacation;
+  $('#vacationState').textContent=!obs.available?'Lecture indisponible':!v?.present?'Aucune période enregistrée':`Départ : ${v.departure||'non renseigné'} · Retour : ${v.return||'non renseigné (hors gel)'}`;
+  $('#clearVacation').disabled=lock||!v?.present;
+  // journal
+  const jr=$('#jr');jr.innerHTML='';const rows=[...(S.journal||[])].reverse().filter(r=>['request','delivered','error'].includes(r.event));if(!rows.length){jr.innerHTML='<div><span></span><b style="color:var(--dim);font-weight:400">Aucune commande encore envoyée</b><em></em></div>'}
+  rows.slice(0,10).forEach(r=>{
+    const what=r.kind==='vacation_clear'?'Annulation vacances / hors gel':r.kind==='setpoint'?`${S.zones[r.zone].name} → ${Number(r.value).toFixed(1).replace('.',',')} °C`:r.kind==='air'?`Ambiance → ${S.labels.air[r.value]}`:`Eau chaude → ${S.labels.ecs[r.value]}`;
+    const d=document.createElement('div');d.className=r.event==='delivered'?'ok':r.event==='error'?'err':'';
+    d.innerHTML=`<span>${hh(r.utc)}</span><b>${what}</b><em>${r.event==='delivered'?'transmise '+(r.elapsed_s?r.elapsed_s+' s':''):r.event==='error'?'échec':'demande'}</em>`;jr.appendChild(d)});
+}
+
+function actualSt(el,item,label){
+ el.className='st '+(S.observed?.available?'delivered':'error');
+ let text=label;
+ if(S.busy && item.delivery_status==='pending')text+=' · envoi en cours';
+ el.querySelector('span').textContent=text;
+}
+async function refresh(){
+ try{S=await api('/api/state');if(S.pin_required&&!pin)$('#pinwrap').classList.add('show');render()}
+ catch(e){if(S){S.available=false;S.observed={available:false};S.health={error:'Page déconnectée du serveur'};S.air.actual=null;S.ecs.actual=null;Object.values(S.zones).forEach(z=>z.actual=null);render()}else{$('#warn').style.display='block';$('#warn').textContent='Serveur indisponible — nouvelle tentative en cours'}}
+}
+async function run(p,body,label){
+ if(sending||!S?.available||S.busy||S.cooldown_s)return false;
+ sending=true;render();toast(label+' — transmission…');
+ try{const j=await api(p,body);toast(j.ok?'Commande livrée en USB. Le retour PAC apparaît dans la page.':j.error||'Refusé',!j.ok);return !!j.ok}
+ catch(e){toast(e.message,true);return false}
+ finally{sending=false;await refresh()}
+}
+async function sendSet(z){const v=local[z];if(v==null)return;if(await run('/api/setpoint',{zone:z,temperature:v},`${S.zones[z].name} ${v} °C`))delete local[z];render()}
+async function sendAir(v){await run('/api/air',{mode:v},S.labels.air[v])}
+async function sendEcs(v){await run('/api/ecs',{mode:v},'Eau chaude · '+S.labels.ecs[v])}
+$('#clearVacation').onclick=()=>run('/api/vacation/clear',{},'Annulation vacances / hors gel');
+$('#pinOk').onclick=()=>{pin=$('#pinIn').value.trim();localStorage.setItem('pilotPin',pin);$('#pinwrap').classList.remove('show');refresh()};
+refresh();setInterval(refresh,4000);
+</script>
+</body>
+</html>

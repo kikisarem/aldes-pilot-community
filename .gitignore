@@ -1,0 +1,15 @@
+.venv/
+__pycache__/
+private/
+logs/
+build*/
+*.uf2
+*.elf
+*.bin
+*.hex
+*.map
+*.dis
+*.log
+*.token
+.env
+.DS_Store
