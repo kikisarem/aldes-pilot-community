@@ -2,7 +2,11 @@
 #include "netcontrol.h"
 #include "cb_tx.h"
 #include "control_protocol.h"
+#if CB_PROVISIONING
+#include "provision_config.h"
+#else
 #include "control_config.h"
+#endif
 #include "netlog.h"
 #include "pico/cyw43_arch.h"
 #include "pico/stdlib.h"
@@ -71,7 +75,12 @@ void netcontrol_init(void) {
 }
 static void command(void) {
  if(!authenticated) {
-  if(!strcmp(line,"AUTH " CONTROL_TOKEN)) {authenticated=true;reply("OK AUTH\n");}
+#if CB_PROVISIONING
+  if(!strncmp(line,"AUTH ",5) && runtime_wifi.token[0] && !strcmp(line+5,runtime_wifi.token))
+#else
+  if(!strcmp(line,"AUTH " CONTROL_TOKEN))
+#endif
+  {authenticated=true;reply("OK AUTH\n");}
   else drop();
   return;
  }

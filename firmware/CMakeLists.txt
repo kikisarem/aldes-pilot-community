@@ -9,6 +9,7 @@ set(CMAKE_C_STANDARD 11)
 set(CMAKE_CXX_STANDARD 17)
 
 pico_sdk_init()
+option(CB_PROVISIONING "Generic firmware with first-boot WiFi portal" OFF)
 set(CB_RX_EARLY_REARM 0 CACHE STRING "RX rearm A/B")
 
 # Le SSID n'est pas un secret : il reste un -D classique.
@@ -39,17 +40,25 @@ foreach(VARIANT lc00 lc115200)
         src/control_protocol.c
     )
 
+    if(CB_PROVISIONING)
+        target_sources(cbclone_${VARIANT} PRIVATE src/provision.c src/provision_config.c src/provision_store.c vendor/dhcpserver/dhcpserver.c vendor/dnsserver/dnsserver.c)
+        target_include_directories(cbclone_${VARIANT} PRIVATE vendor/dhcpserver vendor/dnsserver)
+        target_link_libraries(cbclone_${VARIANT} pico_flash hardware_flash hardware_watchdog pico_rand pico_unique_id)
+        target_compile_definitions(cbclone_${VARIANT} PRIVATE CB_PROVISIONING=1)
+        target_link_options(cbclone_${VARIANT} PRIVATE "-Wl,-T,${CMAKE_CURRENT_LIST_DIR}/config_reserve.ld")
+    else()
+        target_include_directories(cbclone_${VARIANT} PRIVATE ${CMAKE_CURRENT_LIST_DIR}/private ${WIFI_CONFIG_DIR})
+        target_compile_definitions(cbclone_${VARIANT} PRIVATE CB_PROVISIONING=0 WIFI_SSID=\"${WIFI_SSID}\")
+    endif()
+
     target_include_directories(cbclone_${VARIANT} PRIVATE
         ${CMAKE_CURRENT_LIST_DIR}/include
         ${CMAKE_CURRENT_LIST_DIR}/src
-        ${CMAKE_CURRENT_LIST_DIR}/private
-        ${WIFI_CONFIG_DIR}
     )
 
     target_compile_definitions(cbclone_${VARIANT} PRIVATE
         CB_LINE_CODING_ZERO=${LC_ZERO}
         CB_RX_EARLY_REARM=${CB_RX_EARLY_REARM}
-        WIFI_SSID=\"${WIFI_SSID}\"
     )
 
     target_link_libraries(cbclone_${VARIANT}

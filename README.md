@@ -90,3 +90,8 @@ Le dossier communautaire est une sélection de sources anonymisées, sans secret
 Un envoi maximum par page et par épisode, cinq maximum par épisode, dix maximum par heure et dix minutes de reprise. Les réservations sont persistées avant émission afin qu’un plantage ne rejoue pas une commande. Fichier périmé : aucune émission. Page inconnue, délai dépassé ou erreur transport : arrêt signalé. Le verrou est partagé avec les commandes web ; le firmware conserve ses protections ARM/STOP.
 
 La reprise matérielle supervisée avait été validée après une coupure. Cette implémentation automatique est testée en simulation (20 tests Python au total), puis déployée en surveillance sans émission lorsque21 est actif. Un nouveau test de coupure reste nécessaire pour qualifier la reprise automatique de bout en bout.
+
+## Installation simplifiée en préparation
+
+- [Portail Wi-Fi du firmware générique](firmware/PORTAL.md) : UF2 compilé sans secrets, qualification matérielle encore nécessaire. Ne partagez jamais un UF2 personnalisé ou un dump de flash configurée.
+- [Home Assistant : add-on et Docker](homeassistant/README.md) : bridge local permanent, entités MQTT et application web/mobile HA. Packaging non encore déployé sur une instance HA réelle.

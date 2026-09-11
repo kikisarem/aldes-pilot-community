@@ -10,7 +10,7 @@
 
 ## Limites conservées
 
-Une seule installation de référence. Reprise après coupure complète PAC à qualifier. Démarrage Mac à l’ouverture de session, veille et FileVault à considérer. Températures physiques, écriture de nouvelles dates et des grilles horaires, et persistance prolongée d’une nouvelle consigne non qualifiées. Aucune correction automatique des réglages extérieurs.
+Une seule installation de référence. Reprise automatique après coupure PAC validée sur une occurrence avec le firmware historique ; nouveau firmware générique à qualifier. Démarrage Mac à l’ouverture de session, veille et FileVault à considérer. Températures physiques, écriture de nouvelles dates et des grilles horaires, et persistance prolongée d’une nouvelle consigne non qualifiées. Aucune correction automatique des réglages extérieurs.
 
 
 ## Coupure PAC de 30 secondes — 11 septembre 2026
@@ -29,3 +29,16 @@ La séquence diffère du premier déblocage nocturne : ne pas coder une liste av
 Un envoi maximum par page et par épisode, cinq maximum par épisode, dix maximum par heure et dix minutes de reprise. Les réservations sont persistées avant émission afin qu’un plantage ne rejoue pas une commande. Fichier périmé : aucune émission. Page inconnue, délai dépassé ou erreur transport : arrêt signalé. Le verrou est partagé avec les commandes web ; le firmware conserve ses protections ARM/STOP.
 
 La reprise matérielle supervisée avait été validée après une coupure. Cette implémentation automatique est testée en simulation (20 tests Python au total), puis déployée en surveillance sans émission lorsque21 est actif. Un nouveau test de coupure reste nécessaire pour qualifier la reprise automatique de bout en bout.
+
+
+## Deuxième coupure PAC — reprise entièrement automatique
+
+Le 11 septembre 2026 : observation de 20→25→26→27→28→21, cinq commandes de contrôle émises par le service sans envoi manuel, cinq STOP avec armed=0. Trois rapports21 aux uptimes169407/189407/209406 confirment airOFF, ECS ON, K1=24 et K2–K4=22, comme avant la coupure. Le service revient à ready. Cela qualifie cette occurrence sur l’installation de référence, pas toutes les versions de PAC ni le démarrage de l’hôte Mac.
+
+## Portail et packaging Home Assistant — expérimental
+
+Firmware générique compilé pour Pico W RP2040, sans include privé. Tests de formulaire, limites, doublons, échappement, adresses et CRC corrompu/flash vierge sous ASan/UBSan. 26 tests Python du bridge et de la couche MQTT passent. Les commandes MQTT ont une validation explicite ; aucune valeur reçue de MQTT n’est publiée comme état observé.
+
+Portail AP réel, écriture flash interrompue, association DHCP/statique, compatibilité USB du nouveau firmware et installation Docker/HA restent à tester sur matériel. Le firmware et les services de production n’ont pas été remplacés. Le Pi HA n’était pas joignable en SSH pendant cette préparation.
+
+Tests complémentaires : simulation de coupure après effacement et pendant programmation de la nouvelle copie ; ancienne configuration conservée. Navigateur mobile du portail et GET/POST sous préfixe ingress testés avec serveur simulé. Serveur ASGI isolé : iframe SAMEORIGIN, origine réseau hors ingress refusée, POST sans en-tête refusé. Aucun de ces essais n’émet vers la PAC.

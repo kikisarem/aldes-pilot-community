@@ -10,7 +10,11 @@
 #define LWIP_NETCONN                0
 #define MEM_LIBC_MALLOC             0
 #define MEM_ALIGNMENT               4
+#if CB_PROVISIONING
+#define MEM_SIZE                    24000
+#else
 #define MEM_SIZE                    8000
+#endif
 #define MEMP_NUM_TCP_SEG            32
 #define MEMP_NUM_ARP_QUEUE          10
 #define PBUF_POOL_SIZE              24
@@ -27,7 +31,7 @@
 #define LWIP_NETIF_HOSTNAME         1
 #define LWIP_NETCONN_FULLDUPLEX     0
 #define LWIP_NETIF_TX_SINGLE_PBUF   1
-#define LWIP_DHCP                   0
+#define LWIP_DHCP                   CB_PROVISIONING
 #define LWIP_IPV4                   1
 #define LWIP_IPV6                   0
 #define LWIP_TCP                    1

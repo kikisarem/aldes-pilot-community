@@ -1,0 +1,10 @@
+services:
+  aldes-pilot:
+    build: ../addon
+    restart: unless-stopped
+    entrypoint: ["python", "/app/container_run.py"]
+    volumes:
+      - ./private:/data/private
+      - ./logs:/data/logs
+    ports:
+      - "127.0.0.1:8771:8771"

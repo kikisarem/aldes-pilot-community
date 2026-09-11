@@ -21,8 +21,16 @@
 
 /* Le mot de passe arrive par ce header, généré en 0600 dans un répertoire
  * temporaire par tools/bin/wifi-secret et détruit après le build. */
-#if __has_include("wifi_config.h")
+#if !CB_PROVISIONING && __has_include("wifi_config.h")
 #include "wifi_config.h"
+#endif
+
+#if CB_PROVISIONING
+#include "provision_config.h"
+#include "lwip/dhcp.h"
+#include "pico/unique_id.h"
+#define WIFI_SSID runtime_wifi.ssid
+#define WIFI_PASSWORD runtime_wifi.password
 #endif
 
 #ifndef WIFI_SSID
@@ -145,9 +153,18 @@ static unsigned s_auth_idx;
 
 static void apply_static_ip(void) {
   ip4_addr_t ip, mask, gw;
+#if CB_PROVISIONING
+  if(!runtime_wifi.ip[0])return;
+  IP4_ADDR(&ip,runtime_wifi.ip[0],runtime_wifi.ip[1],runtime_wifi.ip[2],runtime_wifi.ip[3]);
+#else
   IP4_ADDR(&ip, CB_IP_A, CB_IP_B, CB_IP_C, CB_IP_D);
+#endif
   IP4_ADDR(&mask, 255, 255, 255, 0);
+#if CB_PROVISIONING
+  IP4_ADDR(&gw,runtime_wifi.gateway[0],runtime_wifi.gateway[1],runtime_wifi.gateway[2],runtime_wifi.gateway[3]);
+#else
   IP4_ADDR(&gw, CB_IP_A, CB_IP_B, CB_IP_C, CB_GW_D);
+#endif
 
   cyw43_arch_lwip_begin();
   struct netif *nif = &cyw43_state.netif[CYW43_ITF_STA];
@@ -161,7 +178,17 @@ int main(void) {
 
   bool wifi_ok = (cyw43_arch_init_with_country(CYW43_COUNTRY_FRANCE) == 0);
   if (wifi_ok) {
+#if CB_PROVISIONING
+    gpio_init(15);gpio_set_dir(15,GPIO_IN);gpio_pull_up(15);sleep_ms(5);
+    if(!provision_load(&runtime_wifi)||!gpio_get(15))provision_run();
+#endif
     cyw43_arch_enable_sta_mode();
+#if CB_PROVISIONING
+    static char hostname[32];char id[17];pico_get_unique_board_id_string(id,sizeof id);snprintf(hostname,sizeof hostname,"aldes-pico-%.8s",id+8);
+    cyw43_arch_lwip_begin();netif_set_hostname(&cyw43_state.netif[CYW43_ITF_STA],hostname);
+    if(runtime_wifi.ip[0])dhcp_stop(&cyw43_state.netif[CYW43_ITF_STA]);
+    cyw43_arch_lwip_end();
+#endif
     /* cyw43_wifi_set_up() arme CYW43_DEFAULT_PM = PM2 (power save agressif).
      * En PM2 le CYW43 dort entre deux beacons et laisse tomber des ARP
      * unicast : la carte est associée mais reste muette, exactement le
@@ -175,9 +202,13 @@ int main(void) {
 
   netlog_printf("================================================================");
   netlog_printf("Workbench TXDIAG v1.2 TX90 / Pico W — variante %s", cb_variant_name());
+#if !CB_PROVISIONING
   netlog_printf("IP statique %u.%u.%u.%u, log TCP port %u", CB_IP_A, CB_IP_B, CB_IP_C, CB_IP_D,
                 CB_LOG_PORT);
   netlog_printf("WiFi SSID \"%s\", init %s", WIFI_SSID, wifi_ok ? "ok" : "ECHEC");
+#else
+  netlog_printf("Generic provisioning firmware; saved WiFi config, no compiled credentials");
+#endif
   netlog_printf("Oracle 1 : trame 0x22 valide = changement de phase");
   netlog_printf("Oracle 2 : trame 0x21 valide portant des LE16 en 1000-3500 = valeurs vivantes");
   netlog_printf("================================================================");
