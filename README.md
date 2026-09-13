@@ -68,6 +68,16 @@ Offsets comptés depuis zéro dans une trame complète. Rapport local `0x21` : 9
 | 81 | Mode air | 0 à 8, table ci-dessous |
 | 82 | Mode ECS | 0 arrêt, 1 marche, 2 Boost |
 
+**Consigne nulle — observation confirmée sur K2 le 13 septembre 2026 :**
+dans le rapport de lecture `0x21`, `00 00` aux offsets 15–16 correspond à
+« sans consigne » sur la zone de l'installation de référence, confirmé par
+l'utilisateur. Ce n'est pas une température ambiante de 0 °C ni une demande de
+refroidissement à 0 °C. Voir les preuves et limites dans [VALIDATION.md](VALIDATION.md#zone-k2-sans-consigne--confirmation-du-13-septembre-2026).
+Ne pas généraliser ce résultat à toutes les zones/versions ni en déduire qu'une
+**écriture** à zéro permet de désactiver une zone : cette commande n'a pas été testée.
+Le décodeur expose encore la valeur brute divisée par 100 (`setpoint_c: 0.0`) ;
+le rendu « Sans consigne » dans les interfaces reste à implémenter.
+
 | Air | Mode |
 |---|---|
 | 0 | Arrêt |

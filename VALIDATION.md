@@ -1,5 +1,33 @@
 # Qualification au 11 septembre 2026
 
+## Zone K2 sans consigne — confirmation du 13 septembre 2026
+
+Observation passive sur l'installation de référence le 12 septembre, puis
+confirmation de l'utilisateur le 13 septembre : la zone K2 était **sans consigne**.
+
+- Le champ K2 du rapport `0x21` (offsets 15–16, little endian) est passé de
+  `98 08` (2200 / 100 = 22 °C) à `00 00`.
+- La valeur nulle a été retrouvée dans 178 rapports complets avec somme de
+  contrôle valide ; les trois autres consignes sont restées à 22 °C.
+- Le bridge et HA affichaient tous deux cette valeur : elle n'était pas créée
+  par la présentation HA. Aucune commande K2 correspondante n'apparaît dans
+  le journal d'opérations consulté ; l'origine du changement n'est pas établie.
+- Le champ candidat de température K2 restait voisin de 22,1 °C. Cela ne
+  constitue pas une validation physique de l'identité de cette sonde.
+
+**Interprétation bornée :** dans ce cas, zéro représente l'absence de consigne,
+pas une température mesurée de 0 °C. La désactivation du chauffage/refroidissement
+de la zone n'a pas été mesurée séparément : ne pas assimiler automatiquement
+« sans consigne » à un arrêt matériel confirmé.
+
+Cette qualification concerne la **lecture** de K2 sur une seule installation.
+Écriture à zéro, réactivation depuis cet état et équivalence pour K1/K3/K4 ou
+d'autres versions non testées. Aucun réglage ni firmware modifié pendant le
+diagnostic. Documentation seule : le code et les interfaces n'ont pas encore
+été adaptés pour afficher « Sans consigne ».
+
+## Résultats antérieurs
+
 - 13 tests Python réussis : framing, ruptures, checksum, fraîcheur, rotation/troncature, changements IHM sans connexion réseau, erreurs historiques distinctes de l’état actuel et masques de commandes.
 - Tests C/clients du firmware réussis, incluant expiration, désarmement, replay refusé et simulations de livraison à 20 / 89,5 secondes.
 - Compilation depuis les sources du dépôt avec secrets factices réussie : SDK 2.3.1 + Arm GNU 14.2.Rel1. Aucun flash matériel lors de cette préparation.
