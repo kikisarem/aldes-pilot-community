@@ -389,6 +389,115 @@
               }
             }
           ]
+        },
+        "name": "Aldes Pilot Consigne K5",
+        "unique_id": "aldes_pilot_rest_k5",
+        "availability": "{{ is_state('sensor.aldes_pilot_rapport', 'online') }}",
+        "optimistic": false,
+        "min": 16,
+        "max": 30,
+        "step": 0.5,
+        "unit_of_measurement": "°C",
+        "state": "{{ ((state_attr('sensor.aldes_pilot_rapport', 'zones') or {}).get('5') or {}).get('actual') }}",
+        "set_value": [
+          {
+            "if": [
+              {
+                "condition": "template",
+                "value_template": "{{ not (is_state('sensor.aldes_pilot_rapport', 'online') and not state_attr('sensor.aldes_pilot_rapport', 'busy') and (state_attr('sensor.aldes_pilot_rapport', 'cooldown_s') | float(0)) <= 0 and (state_attr('sensor.aldes_pilot_rapport', 'recovery') or {}).get('status') != 'recovering') }}"
+              }
+            ],
+            "then": [
+              {
+                "stop": "Commande indisponible : attendre la fin de l’envoi, de la reprise ou du délai de 45 secondes.",
+                "error": true
+              }
+            ]
+          },
+          {
+            "action": "rest_command.aldes_pilot_setpoint",
+            "data": {
+              "zone": 5,
+              "temperature": "{{ value }}"
+            },
+            "response_variable": "reply"
+          },
+          {
+            "if": [
+              {
+                "condition": "template",
+                "value_template": "{{ reply.status != 200 or reply.content is not mapping or not reply.content.get('ok', false) }}"
+              }
+            ],
+            "then": [
+              {
+                "stop": "Commande refusée ou livraison non confirmée ; consulter Aldes Pilot.",
+                "error": true
+              }
+            ]
+          },
+          {
+            "action": "homeassistant.update_entity",
+            "target": {
+              "entity_id": "sensor.aldes_pilot_rapport"
+            }
+          }
+        ]
+        },
+        {
+          "name": "Aldes Pilot Consigne K6",
+          "unique_id": "aldes_pilot_rest_k6",
+          "availability": "{{ is_state('sensor.aldes_pilot_rapport', 'online') }}",
+          "optimistic": false,
+          "min": 16,
+          "max": 30,
+          "step": 0.5,
+          "unit_of_measurement": "°C",
+          "state": "{{ ((state_attr('sensor.aldes_pilot_rapport', 'zones') or {}).get('6') or {}).get('actual') }}",
+          "set_value": [
+            {
+              "if": [
+                {
+                  "condition": "template",
+                  "value_template": "{{ not (is_state('sensor.aldes_pilot_rapport', 'online') and not state_attr('sensor.aldes_pilot_rapport', 'busy') and (state_attr('sensor.aldes_pilot_rapport', 'cooldown_s') | float(0)) <= 0 and (state_attr('sensor.aldes_pilot_rapport', 'recovery') or {}).get('status') != 'recovering') }}"
+                }
+              ],
+              "then": [
+                {
+                  "stop": "Commande indisponible : attendre la fin de l’envoi, de la reprise ou du délai de 45 secondes.",
+                  "error": true
+                }
+              ]
+            },
+            {
+              "action": "rest_command.aldes_pilot_setpoint",
+              "data": {
+                "zone": 6,
+                "temperature": "{{ value }}"
+              },
+              "response_variable": "reply"
+            },
+            {
+              "if": [
+                {
+                  "condition": "template",
+                  "value_template": "{{ reply.status != 200 or reply.content is not mapping or not reply.content.get('ok', false) }}"
+                }
+              ],
+              "then": [
+                {
+                  "stop": "Commande refusée ou livraison non confirmée ; consulter Aldes Pilot.",
+                  "error": true
+                }
+              ]
+            },
+            {
+              "action": "homeassistant.update_entity",
+              "target": {
+                "entity_id": "sensor.aldes_pilot_rapport"
+              }
+            }
+          ]
         }
       ],
       "binary_sensor": [

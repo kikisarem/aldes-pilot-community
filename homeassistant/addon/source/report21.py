@@ -1,6 +1,6 @@
 """Local90-byte report21 decoding. Zone sensor identity remains unverified."""
 import hashlib
-ZONE_NAMES=('K1','K2','K3','K4')
+ZONE_NAMES=('K1','K2','K3','K4','K5','K6')
 AIR={3:'Chauffage Programme A',4:'Chauffage Programme B',7:'Clim Programme C',8:'Clim Programme D',0:'OFF',1:'Chauffage Confort',2:'Chauffage Éco',5:'Clim Confort',6:'Clim Boost'}
 ECS={0:'OFF',1:'ON',2:'Boost'}
 

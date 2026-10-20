@@ -37,7 +37,7 @@ TEMPLATE = bytes.fromhex(
 )
 assert len(TEMPLATE) == 88 and sum(TEMPLATE) % 256 == 0
 
-ZONES = {1: 'Zone 1', 2: 'Zone 2', 3: 'Zone 3', 4: 'Zone 4'}
+ZONES = {1: 'Zone 1', 2: 'Zone 2', 3: 'Zone 3', 4: 'Zone 4', 5: 'Zone 5', 6: 'Zone 6'}
 AIR_MODES = {0: 'Arrêt', 1: 'Chauffage · Confort', 2: 'Chauffage · Éco',
              3: 'Chauffage · Programme A', 4: 'Chauffage · Programme B',
              5: 'Clim · Confort', 6: 'Clim · Boost',
@@ -57,7 +57,7 @@ def _seal(frame: bytearray) -> bytes:
 def _blank() -> bytearray:
     """Gabarit avec tous les champs pilotables masqués : consignes, air, ECS."""
     f = bytearray(TEMPLATE)
-    f[13:21] = b'\xff' * 8
+    f[13:25] = b'\xff' * 12
     f[OFF_AIR] = 0xFF
     f[OFF_ECS] = 0xFF
     return f
