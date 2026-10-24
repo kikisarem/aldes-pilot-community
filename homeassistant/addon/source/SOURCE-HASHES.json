@@ -17,7 +17,7 @@
   "supervisor.py": "51a102d8318e333ff4a962eb16dd02bcdced523b70e792c3c4de7b5eba94c830",
   "recovery.py": "37ae61d00aaa0262aab0302a3be583f61b9cd7e6e1b8cc61b0fe59a90437fc2d",
   "usbguard.py": "56550a37451d536e759a5cb5dfc1cd25390f3eb8e672f5d238ff996d1577c538",
-  "mqtt_bridge.py": "2efc56c47d09d9ed42f5283fd8cb86bd5f958405a182c7e87db6478fac1f2291",
+  "mqtt_bridge.py": "ab4322b80929d67c09299c0ec23b2edc7be2a1f542fdc89b9a781eca1e7b9f06",
   "requirements.txt": "2d6d8eb8662c42125d522e1e4abf5448a481cfd4d53c9751246263f4be9985a5",
   "icon-192.png": "5296a200c0d83429bfa0bc20b55e02b86289e542174d99ff0534fcab717308cf",
   "icon-512.png": "2e03dcddfc31c1b4e1ced2425e6bb390b8c0ae07f3831db5e7560cb8d8d0c50a"

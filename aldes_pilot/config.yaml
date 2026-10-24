@@ -1,5 +1,5 @@
 name: Aldes Pilot
-version: "0.2.0-beta.3"
+version: "0.2.0-beta.4"
 slug: aldes_pilot
 description: Bridge USB Pico W, lecture réelle et pilotage T.One AquaAIR (expérimental)
 url: https://github.com/tiagfernandes/aldes-pilot-community
@@ -17,7 +17,7 @@ options:
   bridge_name: PAC principale
   pico_host: ""
   control_token: ""
-  mqtt_host: core-mosquitto
+  mqtt_host: ""
   mqtt_port: 1883
   mqtt_username: ""
   mqtt_password: ""

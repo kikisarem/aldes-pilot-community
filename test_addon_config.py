@@ -36,13 +36,35 @@ class AddonConfigTests(unittest.TestCase):
         self.assertEqual(second['id'], first['id'])
         self.assertEqual(second['password'], 'updated-password')
 
-    def test_mqtt_configuration_requires_credentials(self):
+    def test_unconfigured_mqtt_is_ignored(self):
         with tempfile.TemporaryDirectory() as directory:
-            with self.assertRaisesRegex(SystemExit, 'utilisateur et un mot de passe MQTT'):
-                ADDON_RUN.mqtt_config({
+            self.assertIsNone(ADDON_RUN.mqtt_config({
+                    'mqtt_host': '',
+                    'mqtt_port': 1883,
+                    'mqtt_username': '',
+                    'mqtt_password': '',
+                }, Path(directory)))
+            self.assertIsNone(ADDON_RUN.mqtt_config({
                     'mqtt_host': 'core-mosquitto',
                     'mqtt_port': 1883,
                     'mqtt_username': '',
+                    'mqtt_password': '',
+                }, Path(directory)))
+
+    def test_mqtt_supports_anonymous_broker_and_requires_complete_credentials(self):
+        with tempfile.TemporaryDirectory() as directory:
+            config_path = ADDON_RUN.mqtt_config({
+                'mqtt_host': 'mqtt.example.local',
+                'mqtt_port': 1883,
+                'mqtt_username': '',
+                'mqtt_password': '',
+            }, Path(directory))
+            self.assertEqual(json.loads(config_path.read_text())['host'], 'mqtt.example.local')
+            with self.assertRaisesRegex(SystemExit, 'les deux identifiants MQTT'):
+                ADDON_RUN.mqtt_config({
+                    'mqtt_host': 'mqtt.example.local',
+                    'mqtt_port': 1883,
+                    'mqtt_username': 'bridge',
                     'mqtt_password': '',
                 }, Path(directory))
 

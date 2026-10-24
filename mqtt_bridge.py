@@ -3,6 +3,29 @@ import json,math,os,threading,time,urllib.request
 from pathlib import Path
 AIR=['Arrêt','Chauffage Confort','Chauffage Éco','Chauffage Programme A','Chauffage Programme B','Clim Confort','Clim Boost','Clim Programme C','Clim Programme D']
 ECS=['Arrêt','Marche','Boost']
+def zone_device(identity,zone):
+ return {
+  'identifiers':[identity+'_zone_'+str(zone)],
+  'name':f'Thermostat Zone {zone}',
+  'manufacturer':'Communauté',
+  'model':'Zone Aldes T.One',
+  'via_device':identity,
+ }
+
+def climate_modes(air_mode):
+ if air_mode==0:return ['off']
+ if air_mode in (1,2,3,4):return ['heat']
+ if air_mode in (5,6,7,8):return ['cool']
+ return ['off','heat','cool']
+
+def setpoint_bounds(air_mode):
+ if air_mode in (1,2,3,4):return 16,24
+ if air_mode in (5,6,7,8):return 22,31
+ return 16,31
+
+def zone_entity_id(identity,zone,entity):
+ return f'{identity}_zone_{zone}_{entity}'
+
 def discovery(identity,active_zones=None,air_mode=None,bridge_name='Aldes Pilot'):
  base='aldes_pilot/'+identity
  device={'identifiers':[identity],'name':bridge_name,'manufacturer':'Communauté','model':'Bridge USB Pico W / Pico 2 W'}
@@ -16,11 +39,36 @@ def discovery(identity,active_zones=None,air_mode=None,bridge_name='Aldes Pilot'
   if component!='button':cfg['state_topic']=base+'/'+key+'/state'
   result[f'homeassistant/{component}/{identity}/{key}/config']=cfg
  active_zones=set(active_zones or ())
+ for zone in range(1,10):
+  if zone not in active_zones:continue
+  zone_key='k'+str(zone)
+  room_device=zone_device(identity,zone)
+  if zone<=4:
+   min_temp,max_temp=setpoint_bounds(air_mode)
+   result[f'homeassistant/climate/{identity}/{zone_key}/config']={
+    'unique_id':identity+'_climate_'+zone_key,
+    'device':room_device,
+    'name':'Thermostat',
+    'availability_topic':base+'/read_availability',
+    'mode_state_topic':base+'/climate_mode/state',
+    'modes':climate_modes(air_mode),
+    'current_temperature_topic':base+'/temperature_'+zone_key+'/state',
+    'temperature_state_topic':base+'/setpoint_'+zone_key+'/state',
+    'temperature_command_topic':base+'/'+zone_key+'/set',
+    'min_temp':min_temp,
+    'max_temp':max_temp,
+    'temp_step':1,
+    'precision':0.1,
+    'temperature_unit':'C',
+    'optimistic':False,
+    'qos':0,
+    'retain':False,
+   }
  for zone in range(5,10):
   if zone not in active_zones:continue
   key='setpoint_k'+str(zone)
   result[f'homeassistant/sensor/{identity}/{key}/config']={
-   'unique_id':identity+'_'+key,'device':device,'name':f'Consigne K{zone}',
+   'unique_id':zone_entity_id(identity,zone,'setpoint'),'device':zone_device(identity,zone),'name':f'Consigne K{zone}',
    'availability_topic':base+'/read_availability','state_topic':base+'/'+key+'/state',
    'unit_of_measurement':'°C','suggested_display_precision':0,
    'expire_after':60,'qos':0,'retain':False,
@@ -29,7 +77,7 @@ def discovery(identity,active_zones=None,air_mode=None,bridge_name='Aldes Pilot'
   if zone not in active_zones:continue
   key='temperature_k'+str(zone)
   result[f'homeassistant/sensor/{identity}/{key}/config']={
-   'unique_id':identity+'_'+key,'device':device,'name':f'Température K{zone}',
+   'unique_id':zone_entity_id(identity,zone,'temperature'),'device':zone_device(identity,zone),'name':'Température',
    'availability_topic':base+'/read_availability','state_topic':base+'/'+key+'/state',
    'unit_of_measurement':'°C','device_class':'temperature','state_class':'measurement',
    'suggested_display_precision':2,'expire_after':60,'qos':0,'retain':False,
@@ -37,11 +85,22 @@ def discovery(identity,active_zones=None,air_mode=None,bridge_name='Aldes Pilot'
  for zone in range(1,5):
   if zone not in active_zones:continue
   key='k'+str(zone)
+  min_temp,max_temp=setpoint_bounds(air_mode)
   result[f'homeassistant/number/{identity}/{key}/config']={
-   'unique_id':identity+'_'+key,'device':device,'name':f'Consigne K{zone}',
-   'availability_topic':base+'/read_availability','command_topic':base+'/'+key+'/set',
-   'state_topic':base+'/'+key+'/state','min':0,'max':24 if air_mode in (1,2,3,4) else 31,'step':1,'mode':'box',
-   'unit_of_measurement':'°C','optimistic':False,'qos':0,'retain':False,
+   'unique_id':zone_entity_id(identity,zone,'setpoint'),
+   'device':zone_device(identity,zone),
+   'name':'Consigne',
+   'availability_topic':base+'/read_availability',
+   'command_topic':base+'/'+key+'/set',
+   'state_topic':base+'/'+key+'/state',
+   'min':0,
+   'max':max_temp,
+   'step':1,
+   'mode':'slider',
+   'unit_of_measurement':'°C',
+   'optimistic':False,
+   'qos':0,
+   'retain':False,
   }
  return result
 
@@ -50,8 +109,20 @@ def zone_discovery_topics(identity):
  for zone in range(1,10):
   topics.append(f'homeassistant/sensor/{identity}/temperature_k{zone}/config')
   if zone>=5:topics.append(f'homeassistant/sensor/{identity}/setpoint_k{zone}/config')
-  else:topics.append(f'homeassistant/number/{identity}/k{zone}/config')
+  else:
+   topics.append(f'homeassistant/number/{identity}/k{zone}/config')
+   topics.append(f'homeassistant/climate/{identity}/k{zone}/config')
  return topics
+
+def zone_from_discovery_topic(topic,identity):
+ parts=topic.split('/')
+ if len(parts)!=5 or parts[0]!='homeassistant' or parts[2]!=identity or parts[4]!='config':return None
+ key=parts[3]
+ if key.startswith('temperature_k'):key=key[len('temperature_'):]
+ elif key.startswith('setpoint_k'):key=key[len('setpoint_'):]
+ if not key.startswith('k') or not key[1:].isdigit():return None
+ zone=int(key[1:])
+ return zone if 1<=zone<=9 else None
 
 def active_zone_ids(state):
  return {
@@ -77,7 +148,7 @@ def observed(s):
  if not s.get('available') or s.get('recovery',{}).get('status')=='recovering':return None
  a=s['air']['actual'];e=s['ecs']['actual']
  if type(a)!=int or type(e)!=int or not 0<=a<len(AIR) or not 0<=e<len(ECS):return None
- out={'air':AIR[a],'ecs':ECS[e]}
+ out={'air':AIR[a],'ecs':ECS[e],'climate_mode':climate_modes(a)[0]}
  for z in range(1,10):
   zone=s.get('zones',{}).get(str(z),{})
   v=zone.get('actual')
@@ -112,7 +183,9 @@ def main():
  import paho.mqtt.client as mqtt
  config=json.loads(Path(os.environ['MQTT_CONFIG']).read_text());identity=config['id'];base='aldes_pilot/'+identity
  client=mqtt.Client(mqtt.CallbackAPIVersion.VERSION2,client_id=identity,clean_session=True)
- client.username_pw_set(config['username'],config['password']);client.will_set(base+'/availability','offline',qos=1,retain=True)
+ if config.get('username') and config.get('password'):
+  client.username_pw_set(config['username'],config['password'])
+ client.will_set(base+'/availability','offline',qos=1,retain=True)
  client.will_set(base+'/read_availability','offline',qos=1,retain=True)
  if config.get('ssl'):client.tls_set()
  connected=threading.Event();read_ready=threading.Event()
@@ -126,6 +199,8 @@ def main():
   if connected.is_set():client.publish(base+'/command_queue/state',latest_queue_status,qos=0,retain=False)
  latest_active_zones=None
  latest_air_mode=None
+ retained_zones=set()
+ retained_sync_timer=None
  def publish_discovery(active_zones=None,air_mode=None):
   configs=discovery(identity,active_zones,air_mode,config.get('name','Aldes Pilot'))
   for topic,cfg in configs.items():client.publish(topic,json.dumps(cfg),qos=1,retain=True)
@@ -134,17 +209,35 @@ def main():
    active_topics=set(configs)
    for topic in zone_discovery_topics(identity):
     if topic not in active_topics:client.publish(topic,b'',qos=1,retain=True)
+ def sync_retained_discovery():
+  nonlocal latest_active_zones,retained_sync_timer
+  retained_sync_timer=None
+  if latest_active_zones is None and retained_zones:
+   latest_active_zones=set(retained_zones)
+   publish_discovery(latest_active_zones,latest_air_mode)
  def connect(c,u,flags,reason,props):
   if reason.is_failure:return
   connected.set();c.publish(base+'/availability','offline',qos=1,retain=True);c.publish(base+'/read_availability','offline',qos=1,retain=True)
   publish_queue_status()
   publish_discovery(latest_active_zones,latest_air_mode);c.subscribe(base+'/+/set',qos=0);c.subscribe('homeassistant/status',qos=0)
+  if latest_active_zones is None:
+   retained_zones.clear()
+   c.subscribe([(topic,0) for topic in zone_discovery_topics(identity)])
  def disconnect(*args):
   connected.clear();read_ready.clear()
  def message(c,u,m):
+  nonlocal retained_sync_timer
   if m.topic=='homeassistant/status':
    if m.payload==b'online':publish_discovery(latest_active_zones,latest_air_mode)
    return
+  if m.retain and m.payload:
+   zone=zone_from_discovery_topic(m.topic,identity)
+   if zone is not None:
+    retained_zones.add(zone)
+    if retained_sync_timer is not None:retained_sync_timer.cancel()
+    retained_sync_timer=threading.Timer(.5,sync_retained_discovery);retained_sync_timer.daemon=True
+    retained_sync_timer.start()
+    return
   parts=m.topic.split('/')
   if len(parts)!=4 or '/'.join(parts[:2])!=base or parts[3]!='set':return
   try:path,body=parse_command(parts[2],m.payload,m.retain)
