@@ -1,0 +1,170 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#0b0d12">
+<title>Logs PAC · Aldes</title>
+<style>
+:root{color-scheme:dark;--bg:#0b0d12;--card:#151924;--line:rgba(255,255,255,.1);--txt:#eceae6;--mut:#9aa3b8;--acc:#5dd6ff;--bad:#ff9a9a}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--txt);font:14px/1.5 -apple-system,BlinkMacSystemFont,"SF Pro Text",Inter,system-ui,sans-serif}
+main{max-width:1000px;margin:auto;padding:24px 16px 48px}
+header{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:20px}
+h1{font-size:25px;margin:0}
+a,button{color:var(--acc)}
+a{font-size:13px}
+button{border:1px solid var(--line);border-radius:10px;background:var(--card);padding:8px 12px;font:inherit;cursor:pointer}
+.meta,.note{color:var(--mut);font-size:12px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;margin:12px 0}
+table{width:100%;border-collapse:collapse}
+th,td{text-align:left;padding:6px 8px;border-bottom:1px solid var(--line)}
+th{font-weight:500}
+td{color:var(--mut)}
+td:last-child{font:12px ui-monospace,SFMono-Regular,Menlo,monospace}
+details{margin-top:14px;border-top:1px solid var(--line);padding-top:10px}
+summary{cursor:pointer;color:var(--acc)}
+.debug-note{margin:8px 0;color:var(--mut);font-size:12px}
+pre{margin:12px 0 0;padding:12px;border-radius:10px;background:#090b10;overflow:auto;white-space:pre-wrap;overflow-wrap:anywhere;max-height:65vh;font:12px/1.55 ui-monospace,SFMono-Regular,Menlo,monospace}
+.error{color:var(--bad)}
+</style>
+</head>
+<body>
+<main>
+<header><h1>Logs de la PAC</h1><a href="/">Retour au pilotage</a></header>
+<p class="note">Journal brut reçu par le collecteur depuis le Pico, actualisé toutes les 3 secondes. Les lignes RAW permettent d’inspecter les rapports envoyés par la PAC.</p>
+<section class="card">
+  <h2>File de commandes</h2>
+  <p class="meta" id="queueState">Chargement…</p>
+  <div id="queueDetails"></div>
+</section>
+<section class="card">
+  <h2>Rapports reçus et données identifiées</h2>
+  <div id="reports"></div>
+</section>
+<section class="card">
+  <div class="meta" id="meta">Chargement…</div>
+  <pre id="log"></pre>
+</section>
+</main>
+<script>
+const $=id=>document.getElementById(id);
+const fmt=value=>typeof value==='number'&&Number.isFinite(value)?`${value.toFixed(2).replace('.',',')} °C`:'—';
+function cell(value){const td=document.createElement('td');td.textContent=value??'—';return td}
+function row(label,value,offset,format){
+  const tr=document.createElement('tr');
+  const name=document.createElement('th');name.scope='row';name.textContent=label;
+  tr.append(name,cell(value),cell(offset===null?'—':`+${offset} · ${format}`));return tr;
+}
+function fields(decoded){
+  if(!decoded)return [];
+  const result=[];
+  for(const zone of decoded.zones||[]){
+    result.push([`Consigne ${zone.zone}`,zone.setpoint_c===0?'Off':fmt(zone.setpoint_c),13+2*(Number(zone.zone.slice(1))-1),'uint16 LE / 100']);
+    result.push([`Température ${zone.zone}`,fmt(zone.temperature_candidate_c),53+2*(Number(zone.zone.slice(1))-1),'int16 LE / 100']);
+  }
+  if(decoded.air)result.push(['Mode air',`${decoded.air.label} (${decoded.air.raw})`,81,'uint8']);
+  if(decoded.ecs)result.push(['Mode eau',`${decoded.ecs.label} (${decoded.ecs.raw})`,82,'uint8']);
+  if(decoded.vacation){
+    result.push(['Départ vacances',decoded.vacation.departure||'Aucune date',5,'uint32 LE · DOS/FAT']);
+    result.push(['Retour vacances',decoded.vacation.return||'Aucune date',9,'uint32 LE · DOS/FAT']);
+  }
+  if(decoded.pac_clock_local)result.push(['Horloge PAC',decoded.pac_clock_local,77,'uint32 LE · DOS/FAT']);
+  return result;
+}
+function debugZones(decoded){
+  const slots=decoded?.zone_slots;
+  if(!Array.isArray(slots))return null;
+  const details=document.createElement('details');
+  const summary=document.createElement('summary');summary.textContent='Debug · emplacements K1 à K9';details.append(summary);
+  const note=document.createElement('p');note.className='debug-note';
+  note.textContent='Valeurs brutes des neuf positions du rapport 0x21, y compris les positions nulles ou inactives. Une position inactive n’est pas publiée comme zone active.';
+  details.append(note);
+  const table=document.createElement('table'),body=document.createElement('tbody');
+  const header=document.createElement('tr');
+  for(const title of ['Zone','État','Consigne brute','Consigne décodée','Température brute','Température candidate','Offsets']){
+    const th=document.createElement('th');th.textContent=title;header.append(th);
+  }
+  body.append(header);
+  for(const slot of slots){
+    const setpoint=slot.setpoint_c===null?'—':slot.setpoint_c===0?'Off':fmt(slot.setpoint_c);
+    const temperature=slot.temperature_candidate_c===null?'—':fmt(slot.temperature_candidate_c);
+    const tr=document.createElement('tr');
+    tr.append(cell(slot.zone),cell(slot.active?'active':'inactive'),cell(`0x${Number(slot.setpoint_raw).toString(16).toUpperCase().padStart(4,'0')}`),cell(setpoint),
+      cell(`0x${Number(slot.temperature_raw).toString(16).toUpperCase().padStart(4,'0')}`),cell(temperature),
+      cell(`consigne +${slot.setpoint_offset} · température +${slot.temperature_offset}`));
+    body.append(tr);
+  }
+  table.append(body);details.append(table);return details;
+}
+function renderQueue(queue){
+  const current=queue?.current;
+  const pending=queue?.pending||{};
+  const result=queue?.result||{};
+  const names={air:'Mode air',ecs:'ECS'};
+  const label=key=>names[key]||(/^k\d+$/.test(key)?'K'+key.slice(1):key);
+  let status='File vide';
+  if(current){
+    const keys=String(current).startsWith('batch:')?String(current).slice(6).split('+'):[String(current)];
+    status=`Envoi en cours · ${keys.map(label).join(', ')}`;
+  }else if(Object.keys(pending).length){
+    status=`${Object.keys(pending).length} en attente · ${Object.keys(pending).map(label).join(', ')}`;
+  }else if(result.status==='error'){
+    status=`Dernière commande en erreur${result.error?` · ${result.error}`:''}`;
+  }else if(result.status==='delivered'){
+    status='Repos · dernière commande transmise';
+  }
+  $('queueState').textContent=status;
+  const details=[];
+  for(const [key,command] of Object.entries(pending)){
+    const value=command.kind==='setpoint'?` · ${command.value===0?'Off':`${command.value} °C`}`:command.value!=null?` · ${command.value}`:'';
+    details.push(`${label(key)}${value}`);
+  }
+  $('queueDetails').textContent=details.length?`Commandes en attente : ${details.join(' ; ')}`:'';
+}
+async function refresh(){
+  try{
+    const [logResponse,stateResponse]=await Promise.all([fetch('/api/logs?lines=300'),fetch('/api/state')]);
+    if(!logResponse.ok)throw new Error('Lecture des logs impossible');
+    if(!stateResponse.ok)throw new Error('Lecture de l’état impossible');
+    const log=await logResponse.json(),state=await stateResponse.json();
+    renderQueue(state.command_queue);
+    $('meta').textContent=log.available?`${log.capture} · ${log.size_bytes} octets · ${log.lines.length} dernières lignes`:'Aucune capture disponible';
+    $('log').textContent=log.lines.join('\n')||log.reason||'Aucune ligne reçue pour le moment.';
+    const pages=state.observation?.pages||[];
+    const reportCards=pages.map(page=>{
+      const card=document.createElement('div');card.className='card';
+      const heading=document.createElement('h3');
+      const identified=page.opcode==='21';
+      heading.textContent=identified?'Rapport local T.One 0x21 · décodage identifié':'Trame 0x'+page.opcode+' · champs non identifiés';
+      const meta=document.createElement('p');meta.className='meta';
+      meta.textContent=`${page.length??'?'} octets · ${page.available?'données fraîches':'données non fraîches'} · ${page.active?'rapport actif':'rapport précédent'}${page.age_s==null?'':` · ${page.age_s.toFixed(1)} s`}`;
+      card.append(heading,meta);
+      const entries=fields(page.decoded);
+      if(entries.length){
+        const table=document.createElement('table');const body=document.createElement('tbody');
+        const header=document.createElement('tr');
+        for(const title of ['Donnée','Valeur','Offset / format']){const th=document.createElement('th');th.textContent=title;header.append(th)}
+        body.append(header);
+        for(const [label,value,offset,format] of entries)body.append(row(label,value,offset,format));
+        table.append(body);card.append(table);
+      }else{
+        const note=document.createElement('p');note.className='note';
+        note.textContent=identified?'Rapport identifié, mais aucun décodage affichable : aucune donnée fraîche n’est actuellement disponible.':page.decoding_status||'Trame reçue et conservée en RAW ; aucun champ n’est encore décodé pour ce rapport.';
+        card.append(note);
+      }
+      if(identified){
+        const debug=debugZones(page.decoded);
+        if(debug)card.append(debug);
+      }
+      return card;
+    });
+    $('reports').replaceChildren(...(reportCards.length?reportCards:[Object.assign(document.createElement('p'),{className:'note',textContent:'Aucun rapport complet reçu.'})]));
+  }catch(error){
+    $('meta').textContent=error.message;$('meta').className='meta error';
+  }
+}
+refresh();setInterval(refresh,3000);
+</script>
+</body>
+</html>

@@ -21,4 +21,4 @@ jobs:
       - name: Verify generated add-on sources
         run: |
           python homeassistant/package.py
-          git diff --exit-code -- homeassistant/addon
+          git diff --exit-code -- homeassistant/addon aldes_pilot

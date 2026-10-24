@@ -140,6 +140,7 @@ La reprise matérielle supervisée avait été validée après une coupure. Cett
 
 - [Portail Wi-Fi du firmware générique](firmware/PORTAL.md) : UF2 compilé sans secrets, qualification matérielle encore nécessaire. Ne partagez jamais un UF2 personnalisé ou un dump de flash configurée.
 - [Home Assistant : add-on, Docker et plusieurs PAC](homeassistant/README.md) : guides d’installation simples, configuration distincte par Pico/PAC et noms MQTT par appareil. Parcours REST déployé sur HA Container ; lecture vérifiée. Commandes HA et parcours MQTT/add-on encore à qualifier.
+- Pour installer et mettre à jour l’add-on bêta depuis Home Assistant, ajoutez le dépôt `https://github.com/tiagfernandes/aldes-pilot-community#beta/home-assistant-addon` en suivant le [guide d’installation de l’add-on](homeassistant/README.md#home-assistant-os).
 
 ## Remerciements et travaux communautaires
 

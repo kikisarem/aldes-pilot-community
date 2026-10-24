@@ -28,7 +28,23 @@ Si le Pico est déjà configuré, ne le reflashez pas : relevez son IP et son to
 
 ## Home Assistant OS
 
-Le parcours add-on reste expérimental. Téléchargez le ZIP du projet depuis GitHub et décompressez-le. Avec Samba ou SSH, copiez **le dossier `homeassistant/addon` entier** vers le dossier local des add-ons de Home Assistant sous le nom `aldes_pilot`. Il contient son Dockerfile, sa configuration et les sources générées. Dans Home Assistant, ouvrez **Paramètres → Modules complémentaires → Boutique → menu ⋮ → Recharger**, puis actualisez la page.
+Le parcours add-on reste expérimental. Pour installer les mises à jour depuis Home Assistant, ajoutez le dépôt personnalisé de la branche bêta :
+
+```text
+https://github.com/tiagfernandes/aldes-pilot-community#beta/home-assistant-addon
+```
+
+1. Ouvrez **Paramètres → Applications → Installer une application** (le libellé peut varier selon la version de Home Assistant).
+2. Dans le menu ⋮, choisissez **Dépôts**, collez l’URL ci-dessus, puis ajoutez le dépôt **Aldes Pilot Beta**.
+3. Recherchez **Aldes Pilot** dans la boutique et installez-le. La première construction télécharge Python et les dépendances ; **elle n’exige pas le SDK Pico**.
+4. Dans la configuration de l’add-on, donnez un nom clair à cette PAC, par exemple `PAC rez-de-chaussée`, puis renseignez `pico_host` et `control_token`. Ces options sont privées.
+5. Démarrez Mosquitto et l’intégration MQTT. L’add-on récupère les identifiants du service MQTT auprès du Supervisor, sans les écrire dans l’image.
+6. Arrêtez tout ancien bridge utilisant le même Pico, démarrez cet add-on et activez son démarrage automatique.
+7. Ouvrez son interface via Home Assistant. L’ingress gère l’accès à la page ; aucun port web n’est publié sur le réseau par défaut.
+
+Pour une mise à jour, ouvrez **Paramètres → Applications → Boutique**, utilisez **Recharger les dépôts** dans le menu ⋮ puis mettez à jour Aldes Pilot lorsque Home Assistant le propose. Les options de configuration sont conservées. Les versions publiées dans cette branche augmentent le champ `version` du manifeste.
+
+Si Aldes Pilot avait été installé auparavant comme add-on local, ne gardez pas les deux copies : sauvegardez les options, arrêtez puis désinstallez l’ancienne copie avant d’installer celle du dépôt. Gardez `pico_host` et `control_token` à portée pour remplir la nouvelle configuration. Ne lancez jamais deux instances qui lisent le même Pico.
 
 1. Rechargez la boutique d’apps/add-ons ; installez **Aldes Pilot** dans les applications locales. La première construction télécharge Python et les dépendances ; **elle n’exige pas le SDK Pico**.
 2. Dans la configuration de l’add-on, donnez un nom clair à cette PAC, par exemple `PAC rez-de-chaussée`, puis renseignez `pico_host` et `control_token`. Ces options sont privées.
@@ -70,7 +86,7 @@ Dans les questions du configurateur, choisissez MQTT et donnez un nom unique, pa
 
 ### Plusieurs PAC sous Home Assistant OS
 
-Le Supervisor ne lance pas deux fois le même add-on. Pour une deuxième PAC, copiez le dossier d’add-on sous un **nouveau slug** (par exemple `/addons/aldes_pilot_pac2`), puis modifiez `config.yaml` dans cette copie : `slug: aldes_pilot_pac2`, `name: Aldes Pilot PAC 2`, `panel_title: PAC 2` et la valeur par défaut `bridge_name: PAC 2`. Rechargez les add-ons locaux et installez les deux add-ons. Dans chacun, définissez un `bridge_name`, une adresse Pico et un token distincts. Les données et l’identité MQTT sont isolées par le Supervisor. Pour mettre à jour le code, régénérez/copiez les sources dans chaque dossier ; ne remplacez pas les options privées.
+Pour ajouter une deuxième PAC, il faut une seconde copie de l’add-on avec un slug distinct ; le dépôt bêta ne fournit actuellement que le slug `aldes_pilot`. Copiez le dossier `aldes_pilot` de ce dépôt dans `/addons/aldes_pilot_pac2`, modifiez `config.yaml` dans cette copie (`slug: aldes_pilot_pac2`, `name: Aldes Pilot PAC 2`, `panel_title: PAC 2` et l’URL du dépôt), puis rechargez les add-ons locaux. Cette copie locale ne reçoit pas automatiquement les mises à jour de la boutique. Pour une deuxième instance gérée en ligne, il faudra publier un second add-on avec son propre slug dans un dépôt que le Supervisor peut suivre. Chaque PAC doit avoir son Pico, son token et son identité MQTT.
 
 Dans les deux parcours, démarrez Mosquitto et l’intégration MQTT, puis vérifiez que Home Assistant affiche un appareil par nom de PAC. Les identifiants MQTT sont générés séparément et conservés avec les données privées de chaque instance ; ne copiez pas le dossier `private` d’une instance vers une autre.
 
