@@ -42,7 +42,7 @@ jobs:
           python3 firmware/build-generic.py
           PICO_BOARD=pico2_w python3 firmware/build-generic.py
           test "$(wc -l < artifacts/SHA256SUMS)" -eq 2
-          sha256sum --check artifacts/SHA256SUMS
+          (cd artifacts && sha256sum --check SHA256SUMS)
 
       - name: Attach UF2 files and checksums to the release
         env:
