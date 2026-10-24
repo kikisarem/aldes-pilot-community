@@ -4,11 +4,11 @@ Code et documentation originaux sous [licence Apache-2.0](LICENSE), copyright 20
 
 > **Projet personnel expérimental, indépendant et non affilié à Aldes.** Les essais décrits portent sur une installation de référence ; ils ne garantissent pas le fonctionnement sur une autre installation ou version. Le projet est partagé à titre informatif et expérimental, sans engagement de résultat, de maintenance ou d’assistance. Il peut modifier le chauffage, la climatisation et l’eau chaude sanitaire. Consultez les [conditions d’utilisation et limites](USAGE.md) et le [dossier de qualification](VALIDATION.md) avant tout essai.
 
-Interface web expérimentale pour un bridge USB Pico W. Elle affiche les consignes et modes **relus sur la PAC**, y compris les changements effectués sur l’IHM. Les changements de réglage partent uniquement sur action utilisateur. Un service distinct peut réamorcer automatiquement les rapports, sans changer les réglages.
+Interface web expérimentale pour un bridge USB Pico W ou Pico 2 W ; les scripts de compilation prennent en charge les deux cartes. Les essais récents de communication et de commandes ont été réalisés sur Pico 2 W. Le nouveau portail Wi-Fi générique reste à qualifier matériellement, et les UF2 ne sont pas inclus dans le ZIP source. Elle affiche les consignes et modes **relus sur la PAC**, y compris les changements effectués sur l’IHM. Les changements de réglage partent uniquement sur action utilisateur. Un service distinct peut réamorcer automatiquement les rapports, sans changer les réglages.
 
 ## Fonctionnalités validées sur l’installation de référence
 
-- Quatre consignes de zone : lecture et écriture.
+- Jusqu’à neuf zones dans le modèle d’état ; seules les zones avec des données sont marquées actives. Les écritures mono-zone K1–K4 sont validées ; l’assemblage de plusieurs consignes dans une seule trame est expérimental et doit être vérifié sur la PAC.
 - Air : arrêt, chauffage Confort / Éco / programmes A et B, climatisation Confort / Boost / programmes C et D.
 - ECS : arrêt, marche, Boost.
 - Vacances : lecture des dates de départ et retour, annulation de la période. Hors gel : observation et annulation ; activation USB non validée.
@@ -24,7 +24,10 @@ Le collecteur existant reçoit les logs RAW du bridge. `readback.py` lit une fen
 
 Aucune boucle de réconciliation ne réécrit les consignes. Un réglage IHM différent est affiché tel quel. Une erreur d’envoi n’entraîne aucun nouvel essai automatique.
 
+La page `/logs` affiche les dernières lignes brutes reçues par le collecteur et les champs identifiés du rapport `0x21`. Elle propose aussi un volet Debug des neuf emplacements, y compris les valeurs brutes des zones inactives. Le rapport fournit neuf emplacements contigus pour consignes et températures ; les interfaces et l’API retournent les zones ayant des données et masquent les autres. La température reste identifiée comme candidate, son association physique aux pièces n’étant pas confirmée. L’interface permet de piloter uniquement K1–K4 ; K5–K9 sont remontées en lecture seule.
+
 Voir [le guide matériel, versions, compilation, flash et amorçage](REPRODUCTION.md).
+Les releases GitHub publiées déclenchent aussi la compilation automatique des UF2 Pico W/Pico 2 W ; voir [Télécharger un UF2 depuis une release](firmware/PORTAL.md#télécharger-un-uf2-depuis-une-release-github).
 
 ## Installation
 
@@ -78,8 +81,8 @@ Offsets comptés depuis zéro dans une trame complète. Rapport local `0x21` : 9
 |---|---|---|
 | 5–8 | Départ vacances | DOS/FAT 32 bits, little endian ; zéro = absent |
 | 9–12 | Retour vacances | Même format |
-| 13–20 | Consignes K1 à K4 | Quatre entiers 16 bits little endian / 100 |
-| 53–60 | Températures candidates | Identité physique des sondes non validée |
+| 13–30 | Consignes K1 à K9 | Neuf entiers 16 bits little endian / 100 |
+| 53–70 | Températures candidates K1 à K9 | Neuf entiers 16 bits little endian / 100 ; identité physique des sondes non validée |
 | 77–80 | Horloge PAC | DOS/FAT ; ne pas assimiler au temps hôte |
 | 81 | Mode air | 0 à 8, table ci-dessous |
 | 82 | Mode ECS | 0 arrêt, 1 marche, 2 Boost |
@@ -89,10 +92,22 @@ dans le rapport de lecture `0x21`, `00 00` aux offsets 15–16 correspond à
 « sans consigne » sur la zone de l'installation de référence, confirmé par
 l'utilisateur. Ce n'est pas une température ambiante de 0 °C ni une demande de
 refroidissement à 0 °C. Voir les preuves et limites dans [VALIDATION.md](VALIDATION.md#zone-k2-sans-consigne--confirmation-du-13-septembre-2026).
-Ne pas généraliser ce résultat à toutes les zones/versions ni en déduire qu'une
-**écriture** à zéro permet de désactiver une zone : cette commande n'a pas été testée.
-Le décodeur expose encore la valeur brute divisée par 100 (`setpoint_c: 0.0`) ;
-le rendu « Sans consigne » dans les interfaces reste à implémenter.
+La commande de consigne accepte 0 (Off), ainsi que 16–24 °C en chauffage ou
+22–31 °C en climatisation, par pas de 1 °C ; les autres valeurs et fractions
+sont refusées. Quand le mode air global est Arrêt, la plage 16–31 °C est
+acceptée, faute de mode chauffage/climatisation actif. Le décodeur
+expose la valeur brute divisée par 100 (`setpoint_c: 0.0`) ; l'interface affiche
+« Off », tandis que MQTT conserve la valeur numérique `0`. L'écriture de zéro
+comme arrêt de zone suit le comportement indiqué par l'utilisateur ; elle n'a
+pas encore été qualifiée par un essai documenté sur toutes les versions de PAC.
+Les modifications de consigne arrivées dans une fenêtre de cinq secondes sont
+assemblées en une trame multi-zone. Ce format doit être essayé sous surveillance
+sur la PAC avant d’être considéré comme validé.
+
+Les commandes mode air et ECS soumises dans la même fenêtre de deux secondes sont
+également assemblées dans une trame expérimentale. Lors du premier essai, vérifier
+séparément les deux modes sur le rapport PAC et l’IHM ; `USB_DONE` seul ne confirme
+pas leur application.
 
 | Air | Mode |
 |---|---|
@@ -124,7 +139,7 @@ La reprise matérielle supervisée avait été validée après une coupure. Cett
 ## Installation simplifiée en préparation
 
 - [Portail Wi-Fi du firmware générique](firmware/PORTAL.md) : UF2 compilé sans secrets, qualification matérielle encore nécessaire. Ne partagez jamais un UF2 personnalisé ou un dump de flash configurée.
-- [Home Assistant : add-on et Docker](homeassistant/README.md) : bridge local permanent, entités MQTT et application web/mobile HA. Parcours REST déployé sur HA Container ; lecture vérifiée. Commandes HA et parcours MQTT/add-on encore à qualifier.
+- [Home Assistant : add-on, Docker et plusieurs PAC](homeassistant/README.md) : guides d’installation simples, configuration distincte par Pico/PAC et noms MQTT par appareil. Parcours REST déployé sur HA Container ; lecture vérifiée. Commandes HA et parcours MQTT/add-on encore à qualifier.
 
 ## Remerciements et travaux communautaires
 

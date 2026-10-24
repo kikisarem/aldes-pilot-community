@@ -6,6 +6,7 @@ def main():
  os.umask(0o077)
  opts=json.loads(Path('/data/options.json').read_text())
  host=opts['pico_host'].strip();token=opts['control_token'].strip()
+ bridge_name=opts.get('bridge_name','Aldes Pilot').strip() or 'Aldes Pilot'
  if not re.fullmatch(r'[A-Za-z0-9][A-Za-z0-9.-]{0,252}',host) or not re.fullmatch(r'[0-9a-fA-F]{64}',token):raise SystemExit('Renseignez pico_host et le token de contrôle (64 caractères hexadécimaux).')
  private=Path('/data/private');private.mkdir(exist_ok=True)
  private.joinpath('control.token').write_text(token+'\n')
@@ -21,7 +22,7 @@ def main():
   except Exception:pass
   time.sleep(2)
  if mqtt is None:raise SystemExit('Service MQTT indisponible : démarrer Mosquitto et activer MQTT dans Home Assistant.')
- private.joinpath('mqtt.json').write_text(json.dumps({**mqtt,'id':ident.read_text()}))
+ private.joinpath('mqtt.json').write_text(json.dumps({**mqtt,'id':ident.read_text(),'name':bridge_name}))
  private.joinpath('service.json').write_text(json.dumps({'PICO_HOST':host,'PICO_TOKEN':str(private/'control.token'),'MQTT_CONFIG':str(private/'mqtt.json'),'PILOT_INGRESS':'1'}))
  os.execv(sys.executable,[sys.executable,'/app/supervisor.py'])
 if __name__=='__main__':main()

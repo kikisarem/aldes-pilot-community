@@ -8,7 +8,7 @@
 | Interface PAC | Version IHM **181**, lue à l’écran |
 | Version complète du régulateur | Non identifiée avec certitude ; ne pas confondre avec IHM 181 ou un firmware V17 téléchargé pour analyse |
 | Zones | Quatre thermostats radio Aldes **35001151** |
-| Bridge | **Raspberry Pi Pico W, RP2040** ; pas un Pico sans Wi-Fi ni un Pico 2 W validé |
+| Bridge | Le code cible Pico W (RP2040) et Pico 2 W (RP2350) ; communication et commandes récentes exercées sur Pico 2 W |
 | Câble | USB de données entre le port USB hôte de la PAC et le micro-USB du Pico W ; un câble charge seule ne convient pas |
 | Réseau | Wi-Fi 2,4 GHz ; adresse IPv4 fixe libre, passerelle dans le même /24 dans le code de référence |
 | Firmware Pico utilisé | TXDIAG v1.2 TX90 + diagnostic de fin des transferts de contrôle ; variante **lc00**, `CB_RX_EARLY_REARM=0` |
@@ -18,7 +18,13 @@
 
 Le serveur doit rester allumé pour servir la page et collecter les logs. Aucun compte Aldes ni ConnectBox ne sont nécessaires dans cette installation. Aucune ouverture de PAC, soudure ou liaison radio supplémentaire.
 
-## 1. Préparer le firmware personnel
+## Installation recommandée sans compiler
+
+Pour une première installation, construisez l’UF2 générique de votre modèle puis suivez le guide pas à pas [Configuration du Pico W / Pico 2 W](firmware/PORTAL.md). Le code cible les deux cartes, mais les UF2 ne sont pas fournis dans le ZIP source. Cette méthode configure le Wi-Fi et crée le token au premier démarrage ; elle nécessite le SDK et la toolchain pour construire le binaire. Le portail de provisionnement reste à qualifier matériellement.
+
+Le reste de ce document décrit la méthode historique de compilation d’un firmware personnalisé avec les identifiants Wi-Fi intégrés ; elle est réservée aux personnes qui souhaitent reconstruire le firmware. Ne partagez jamais l’UF2 ainsi généré.
+
+## 1. Préparer le firmware personnel (optionnel)
 
 Installer Git, Python 3, CMake, un compilateur C natif et **la chaîne Arm complète avec newlib**. Sur le Mac de référence, le simple paquet Homebrew `arm-none-eabi-gcc` échouait avec `cannot find -lg/-lc` ; la distribution Arm GNU complète fonctionne.
 
@@ -31,7 +37,13 @@ python3 firmware/configure.py
 python3 firmware/build-local.py
 ```
 
-`configure.py` demande SSID, mot de passe, IPv4 et passerelle. Il génère un jeton aléatoire et des headers sous `firmware/private/`, ignorés par Git. Le build produit `firmware/build/cbclone_lc00.uf2`. Ce fichier contient **vos** identifiants : ne pas le partager. Aucun binaire personnalisé de l’installation de référence n’est fourni.
+Pour le **Pico 2 W**, choisissez explicitement la carte :
+
+```sh
+PICO_BOARD=pico2_w python3 firmware/build-local.py
+```
+
+`configure.py` demande SSID, mot de passe, IPv4 et passerelle. Il génère un jeton aléatoire et des headers sous `firmware/private/`, ignorés par Git. Le build produit `firmware/build/cbclone_lc00.uf2` pour le Pico W ou `firmware/build-pico2_w/cbclone_lc00.uf2` pour le Pico 2 W. Ce fichier contient **vos** identifiants : ne pas le partager. Aucun binaire personnalisé de l’installation de référence n’est fourni.
 
 Le SSID entre dans le cache CMake ; le mot de passe est dans le header privé et le binaire. Conserver ces fichiers localement, permissions restrictives. La configuration réseau est statique /24 ; d’autres topologies demandent une adaptation du source, pas un changement de firmware PAC.
 

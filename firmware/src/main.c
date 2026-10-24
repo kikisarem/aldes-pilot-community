@@ -1,5 +1,5 @@
 #include "cb_tx.h"
-/* Clone ConnectBox sur Pico W — expérience n°1 : GET_LINE_CODING.
+/* Clone ConnectBox sur Pico W / Pico 2 W — expérience n°1 : GET_LINE_CODING.
  *
  * Ordre de démarrage volontaire : le CYW43 est initialisé AVANT tusb_init().
  * cyw43_arch_init() bloque ~1 s pour charger son firmware ; si l'USB était déjà
@@ -82,7 +82,7 @@ extern uint32_t cb_n_truncated;
  *   allumée fixe  associée, netlog en écoute
  *   clignotement rapide  client TCP connecté sur 8765
  *
- * Une seule écriture SPI par transition : la LED du Pico W est derrière le
+ * Une seule écriture SPI par transition : la LED des Pico W est derrière le
  * CYW43, on ne la pilote pas depuis la boucle serrée.
  */
 static void led_service(int pulses) {
@@ -201,7 +201,7 @@ int main(void) {
   }
 
   netlog_printf("================================================================");
-  netlog_printf("Workbench TXDIAG v1.2 TX90 / Pico W — variante %s", cb_variant_name());
+  netlog_printf("Workbench TXDIAG v1.2 TX90 / Pico W/2 W — variante %s", cb_variant_name());
 #if !CB_PROVISIONING
   netlog_printf("IP statique %u.%u.%u.%u, log TCP port %u", CB_IP_A, CB_IP_B, CB_IP_C, CB_IP_D,
                 CB_LOG_PORT);

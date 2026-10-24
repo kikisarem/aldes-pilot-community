@@ -25,6 +25,26 @@
         },
         {
           "type": "entities",
+          "title": "Zones",
+          "entities": [
+            "sensor.aldes_pilot_temperature_k1",
+            "sensor.aldes_pilot_temperature_k2",
+            "sensor.aldes_pilot_temperature_k3",
+            "sensor.aldes_pilot_temperature_k4",
+            "sensor.aldes_pilot_temperature_k5",
+            "sensor.aldes_pilot_temperature_k6",
+            "sensor.aldes_pilot_temperature_k7",
+            "sensor.aldes_pilot_temperature_k8",
+            "sensor.aldes_pilot_temperature_k9",
+            "sensor.aldes_pilot_consigne_k5",
+            "sensor.aldes_pilot_consigne_k6",
+            "sensor.aldes_pilot_consigne_k7",
+            "sensor.aldes_pilot_consigne_k8",
+            "sensor.aldes_pilot_consigne_k9"
+          ]
+        },
+        {
+          "type": "entities",
           "title": "État et vacances",
           "entities": [
             "sensor.aldes_pilot_rapport",

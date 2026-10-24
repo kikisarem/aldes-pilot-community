@@ -1,0 +1,55 @@
+name: Build Pico firmware release assets
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: write
+
+jobs:
+  firmware:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out release source
+        uses: actions/checkout@v4
+
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes build-essential cmake curl python3 tar
+
+      - name: Install Arm GNU Toolchain 14.2.Rel1
+        run: |
+          mkdir -p "$RUNNER_TEMP/arm-gnu-toolchain"
+          curl --fail --location --retry 3 \
+            https://developer.arm.com/-/media/Files/downloads/gnu/14.2.rel1/binrel/arm-gnu-toolchain-14.2.rel1-x86_64-arm-none-eabi.tar.xz \
+            --output "$RUNNER_TEMP/arm-gnu-toolchain.tar.xz"
+          tar -xJf "$RUNNER_TEMP/arm-gnu-toolchain.tar.xz" \
+            --strip-components=1 -C "$RUNNER_TEMP/arm-gnu-toolchain"
+          echo "$RUNNER_TEMP/arm-gnu-toolchain/bin" >> "$GITHUB_PATH"
+          echo "PICO_TOOLCHAIN_PATH=$RUNNER_TEMP/arm-gnu-toolchain" >> "$GITHUB_ENV"
+
+      - name: Install Raspberry Pi Pico SDK 2.3.1
+        run: |
+          git clone --depth 1 --branch 2.3.1 --recurse-submodules \
+            https://github.com/raspberrypi/pico-sdk.git "$RUNNER_TEMP/pico-sdk"
+          echo "PICO_SDK_PATH=$RUNNER_TEMP/pico-sdk" >> "$GITHUB_ENV"
+
+      - name: Build generic Pico W and Pico 2 W UF2 files
+        run: |
+          rm -f artifacts/SHA256SUMS
+          python3 firmware/build-generic.py
+          PICO_BOARD=pico2_w python3 firmware/build-generic.py
+          test "$(wc -l < artifacts/SHA256SUMS)" -eq 2
+          sha256sum --check artifacts/SHA256SUMS
+
+      - name: Attach UF2 files and checksums to the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release upload "$GITHUB_REF_NAME" \
+            artifacts/aldes-pico-w-portal-experimental.uf2 \
+            artifacts/aldes-pico-2-w-portal-experimental.uf2 \
+            artifacts/SHA256SUMS \
+            --clobber

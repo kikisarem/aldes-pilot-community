@@ -4,7 +4,7 @@ services:
     restart: unless-stopped
     entrypoint: ["python", "/app/container_run.py"]
     volumes:
-      - ./private:/data/private
-      - ./logs:/data/logs
+      - ./${INSTANCE_DIR:-.}/private:/data/private
+      - ./${INSTANCE_DIR:-.}/logs:/data/logs
     ports:
-      - "127.0.0.1:8771:8771"
+      - "127.0.0.1:${WEB_PORT:-8771}:8771"

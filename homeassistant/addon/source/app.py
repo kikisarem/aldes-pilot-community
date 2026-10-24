@@ -1,7 +1,7 @@
 import os
 from pathlib import Path
 
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Query, Request
 from starlette.concurrency import run_in_threadpool
 from fastapi.responses import FileResponse, JSONResponse
 
@@ -35,6 +35,30 @@ def index():
     return FileResponse(ROOT / 'index.html')
 
 
+@app.get('/logs')
+def logs_page():
+    return FileResponse(ROOT / 'logs.html')
+
+
+@app.get('/api/logs')
+def logs(lines: int = Query(default=250, ge=1, le=500)):
+    capture = Path(os.environ.get('PICO_CAPTURE', ROOT / 'private/pico.log'))
+    try:
+        with capture.open('rb') as stream:
+            size = os.fstat(stream.fileno()).st_size
+            start = max(0, size - 128 * 1024)
+            stream.seek(start)
+            raw = stream.read(128 * 1024)
+    except FileNotFoundError:
+        return {'available': False, 'lines': [], 'reason': 'Aucune capture disponible'}
+    except OSError as exc:
+        return JSONResponse({'error': f'Lecture de la capture impossible: {exc}'}, status_code=503)
+    entries = raw.decode('utf-8', errors='replace').splitlines()
+    if start and entries:
+        entries = entries[1:]
+    return {'available': True, 'capture': capture.name, 'size_bytes': size, 'lines': entries[-lines:]}
+
+
 @app.get('/manifest.json')
 def manifest():
     return FileResponse(ROOT / 'manifest.json', media_type='application/manifest+json')
@@ -61,6 +85,38 @@ def state():
     # L'état du banc est vérifié au moment de l'envoi, dans Workbench.transact.
     # /api/connection reste disponible pour un test manuel, à la demande.
     return s
+
+
+@app.post('/api/queue/setpoint')
+async def queue_setpoint(request: Request):
+    body = await request.json()
+    try:
+        return pilot.enqueue('setpoint', body.get('temperature'), int(body.get('zone')))
+    except (ValueError, TypeError) as exc:
+        return JSONResponse({'ok': False, 'error': str(exc)}, status_code=400)
+
+
+@app.post('/api/queue/air')
+async def queue_air(request: Request):
+    body = await request.json()
+    try:
+        return pilot.enqueue('air', body.get('mode'))
+    except (ValueError, TypeError) as exc:
+        return JSONResponse({'ok': False, 'error': str(exc)}, status_code=400)
+
+
+@app.post('/api/queue/ecs')
+async def queue_ecs(request: Request):
+    body = await request.json()
+    try:
+        return pilot.enqueue('ecs', body.get('mode'))
+    except (ValueError, TypeError) as exc:
+        return JSONResponse({'ok': False, 'error': str(exc)}, status_code=400)
+
+
+@app.post('/api/queue/vacation/clear')
+def queue_vacation_clear():
+    return pilot.enqueue('vacation_clear', 0)
 
 
 @app.post('/api/setpoint')

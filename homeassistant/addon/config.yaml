@@ -16,8 +16,10 @@ panel_title: Aldes Pilot
 services:
   - mqtt:need
 options:
+  bridge_name: PAC principale
   pico_host: ""
   control_token: ""
 schema:
+  bridge_name: str
   pico_host: str
   control_token: password

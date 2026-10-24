@@ -175,9 +175,9 @@
           "unique_id": "aldes_pilot_rest_k1",
           "availability": "{{ is_state('sensor.aldes_pilot_rapport', 'online') }}",
           "optimistic": false,
-          "min": 16,
-          "max": 30,
-          "step": 0.5,
+          "min": 0,
+          "max": 31,
+          "step": 1,
           "unit_of_measurement": "°C",
           "state": "{{ ((state_attr('sensor.aldes_pilot_rapport', 'zones') or {}).get('1') or {}).get('actual') }}",
           "set_value": [
@@ -230,9 +230,9 @@
           "unique_id": "aldes_pilot_rest_k2",
           "availability": "{{ is_state('sensor.aldes_pilot_rapport', 'online') }}",
           "optimistic": false,
-          "min": 16,
-          "max": 30,
-          "step": 0.5,
+          "min": 0,
+          "max": 31,
+          "step": 1,
           "unit_of_measurement": "°C",
           "state": "{{ ((state_attr('sensor.aldes_pilot_rapport', 'zones') or {}).get('2') or {}).get('actual') }}",
           "set_value": [
@@ -285,9 +285,9 @@
           "unique_id": "aldes_pilot_rest_k3",
           "availability": "{{ is_state('sensor.aldes_pilot_rapport', 'online') }}",
           "optimistic": false,
-          "min": 16,
-          "max": 30,
-          "step": 0.5,
+          "min": 0,
+          "max": 31,
+          "step": 1,
           "unit_of_measurement": "°C",
           "state": "{{ ((state_attr('sensor.aldes_pilot_rapport', 'zones') or {}).get('3') or {}).get('actual') }}",
           "set_value": [
@@ -340,9 +340,9 @@
           "unique_id": "aldes_pilot_rest_k4",
           "availability": "{{ is_state('sensor.aldes_pilot_rapport', 'online') }}",
           "optimistic": false,
-          "min": 16,
-          "max": 30,
-          "step": 0.5,
+          "min": 0,
+          "max": 31,
+          "step": 1,
           "unit_of_measurement": "°C",
           "state": "{{ ((state_attr('sensor.aldes_pilot_rapport', 'zones') or {}).get('4') or {}).get('actual') }}",
           "set_value": [
@@ -389,6 +389,110 @@
               }
             }
           ]
+        }
+      ],
+      "sensor": [
+        {
+          "name": "Aldes Pilot Température K1",
+          "unique_id": "aldes_pilot_rest_temperature_k1",
+          "unit_of_measurement": "°C",
+          "device_class": "temperature",
+          "state_class": "measurement",
+          "state": "{{ ((state_attr('sensor.aldes_pilot_rapport', 'zones') or {}).get('1') or {}).get('temperature_candidate_c') if ((state_attr('sensor.aldes_pilot_rapport', 'zones') or {}).get('1') or {}).get('active', false) else none }}"
+        },
+        {
+          "name": "Aldes Pilot Température K2",
+          "unique_id": "aldes_pilot_rest_temperature_k2",
+          "unit_of_measurement": "°C",
+          "device_class": "temperature",
+          "state_class": "measurement",
+          "state": "{{ ((state_attr('sensor.aldes_pilot_rapport', 'zones') or {}).get('2') or {}).get('temperature_candidate_c') if ((state_attr('sensor.aldes_pilot_rapport', 'zones') or {}).get('2') or {}).get('active', false) else none }}"
+        },
+        {
+          "name": "Aldes Pilot Température K3",
+          "unique_id": "aldes_pilot_rest_temperature_k3",
+          "unit_of_measurement": "°C",
+          "device_class": "temperature",
+          "state_class": "measurement",
+          "state": "{{ ((state_attr('sensor.aldes_pilot_rapport', 'zones') or {}).get('3') or {}).get('temperature_candidate_c') if ((state_attr('sensor.aldes_pilot_rapport', 'zones') or {}).get('3') or {}).get('active', false) else none }}"
+        },
+        {
+          "name": "Aldes Pilot Température K4",
+          "unique_id": "aldes_pilot_rest_temperature_k4",
+          "unit_of_measurement": "°C",
+          "device_class": "temperature",
+          "state_class": "measurement",
+          "state": "{{ ((state_attr('sensor.aldes_pilot_rapport', 'zones') or {}).get('4') or {}).get('temperature_candidate_c') if ((state_attr('sensor.aldes_pilot_rapport', 'zones') or {}).get('4') or {}).get('active', false) else none }}"
+        },
+        {
+          "name": "Aldes Pilot Température K5",
+          "unique_id": "aldes_pilot_rest_temperature_k5",
+          "unit_of_measurement": "°C",
+          "device_class": "temperature",
+          "state_class": "measurement",
+          "state": "{{ ((state_attr('sensor.aldes_pilot_rapport', 'zones') or {}).get('5') or {}).get('temperature_candidate_c') if ((state_attr('sensor.aldes_pilot_rapport', 'zones') or {}).get('5') or {}).get('active', false) else none }}"
+        },
+        {
+          "name": "Aldes Pilot Température K6",
+          "unique_id": "aldes_pilot_rest_temperature_k6",
+          "unit_of_measurement": "°C",
+          "device_class": "temperature",
+          "state_class": "measurement",
+          "state": "{{ ((state_attr('sensor.aldes_pilot_rapport', 'zones') or {}).get('6') or {}).get('temperature_candidate_c') if ((state_attr('sensor.aldes_pilot_rapport', 'zones') or {}).get('6') or {}).get('active', false) else none }}"
+        },
+        {
+          "name": "Aldes Pilot Température K7",
+          "unique_id": "aldes_pilot_rest_temperature_k7",
+          "unit_of_measurement": "°C",
+          "device_class": "temperature",
+          "state_class": "measurement",
+          "state": "{{ ((state_attr('sensor.aldes_pilot_rapport', 'zones') or {}).get('7') or {}).get('temperature_candidate_c') if ((state_attr('sensor.aldes_pilot_rapport', 'zones') or {}).get('7') or {}).get('active', false) else none }}"
+        },
+        {
+          "name": "Aldes Pilot Température K8",
+          "unique_id": "aldes_pilot_rest_temperature_k8",
+          "unit_of_measurement": "°C",
+          "device_class": "temperature",
+          "state_class": "measurement",
+          "state": "{{ ((state_attr('sensor.aldes_pilot_rapport', 'zones') or {}).get('8') or {}).get('temperature_candidate_c') if ((state_attr('sensor.aldes_pilot_rapport', 'zones') or {}).get('8') or {}).get('active', false) else none }}"
+        },
+        {
+          "name": "Aldes Pilot Température K9",
+          "unique_id": "aldes_pilot_rest_temperature_k9",
+          "unit_of_measurement": "°C",
+          "device_class": "temperature",
+          "state_class": "measurement",
+          "state": "{{ ((state_attr('sensor.aldes_pilot_rapport', 'zones') or {}).get('9') or {}).get('temperature_candidate_c') if ((state_attr('sensor.aldes_pilot_rapport', 'zones') or {}).get('9') or {}).get('active', false) else none }}"
+        },
+        {
+          "name": "Aldes Pilot Consigne K5",
+          "unique_id": "aldes_pilot_rest_setpoint_k5",
+          "unit_of_measurement": "°C",
+          "state": "{{ ((state_attr('sensor.aldes_pilot_rapport', 'zones') or {}).get('5') or {}).get('actual') if ((state_attr('sensor.aldes_pilot_rapport', 'zones') or {}).get('5') or {}).get('active', false) else none }}"
+        },
+        {
+          "name": "Aldes Pilot Consigne K6",
+          "unique_id": "aldes_pilot_rest_setpoint_k6",
+          "unit_of_measurement": "°C",
+          "state": "{{ ((state_attr('sensor.aldes_pilot_rapport', 'zones') or {}).get('6') or {}).get('actual') if ((state_attr('sensor.aldes_pilot_rapport', 'zones') or {}).get('6') or {}).get('active', false) else none }}"
+        },
+        {
+          "name": "Aldes Pilot Consigne K7",
+          "unique_id": "aldes_pilot_rest_setpoint_k7",
+          "unit_of_measurement": "°C",
+          "state": "{{ ((state_attr('sensor.aldes_pilot_rapport', 'zones') or {}).get('7') or {}).get('actual') if ((state_attr('sensor.aldes_pilot_rapport', 'zones') or {}).get('7') or {}).get('active', false) else none }}"
+        },
+        {
+          "name": "Aldes Pilot Consigne K8",
+          "unique_id": "aldes_pilot_rest_setpoint_k8",
+          "unit_of_measurement": "°C",
+          "state": "{{ ((state_attr('sensor.aldes_pilot_rapport', 'zones') or {}).get('8') or {}).get('actual') if ((state_attr('sensor.aldes_pilot_rapport', 'zones') or {}).get('8') or {}).get('active', false) else none }}"
+        },
+        {
+          "name": "Aldes Pilot Consigne K9",
+          "unique_id": "aldes_pilot_rest_setpoint_k9",
+          "unit_of_measurement": "°C",
+          "state": "{{ ((state_attr('sensor.aldes_pilot_rapport', 'zones') or {}).get('9') or {}).get('actual') if ((state_attr('sensor.aldes_pilot_rapport', 'zones') or {}).get('9') or {}).get('active', false) else none }}"
         }
       ],
       "binary_sensor": [

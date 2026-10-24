@@ -31,9 +31,25 @@ def package():
     numbers = []
     for zone in range(1, 5):
         numbers.append({'name': f'Aldes Pilot Consigne K{zone}', 'unique_id': f'aldes_pilot_rest_k{zone}',
-            'availability': AVAILABLE, 'optimistic': False, 'min': 16, 'max': 30, 'step': 0.5, 'unit_of_measurement': '°C',
+            'availability': AVAILABLE, 'optimistic': False, 'min': 0, 'max': 31, 'step': 1, 'unit_of_measurement': '°C',
             'state': "{{ ((state_attr('" + REPORT + "', 'zones') or {}).get('" + str(zone) + "') or {}).get('actual') }}",
             'set_value': action('setpoint', {'zone': zone, 'temperature': '{{ value }}'})})
+    sensors = []
+    for zone in range(1, 10):
+        zone_data = "((state_attr('" + REPORT + "', 'zones') or {}).get('" + str(zone) + "') or {})"
+        active = zone_data + ".get('active', false)"
+        sensors.append({'name': f'Aldes Pilot Température K{zone}',
+            'unique_id': f'aldes_pilot_rest_temperature_k{zone}',
+            'unit_of_measurement': '°C', 'device_class': 'temperature',
+            'state_class': 'measurement',
+            'state': "{{ " + zone_data + ".get('temperature_candidate_c') if " + active + " else none }}"})
+    for zone in range(5, 10):
+        zone_data = "((state_attr('" + REPORT + "', 'zones') or {}).get('" + str(zone) + "') or {})"
+        active = zone_data + ".get('active', false)"
+        sensors.append({'name': f'Aldes Pilot Consigne K{zone}',
+            'unique_id': f'aldes_pilot_rest_setpoint_k{zone}',
+            'unit_of_measurement': '°C',
+            'state': "{{ " + zone_data + ".get('actual') if " + active + " else none }}"})
     commands = {}
     for key, path, payload in [('air', 'air', '{"mode": {{ mode | int }} }'),
                                ('ecs', 'ecs', '{"mode": {{ mode | int }} }'),
@@ -46,7 +62,7 @@ def package():
             'value_template': "{{ 'online' if value_json.available else 'offline' }}",
             'json_attributes': ['air', 'ecs', 'zones', 'recovery', 'busy', 'cooldown_s']}]}],
         'rest_command': commands,
-        'template': [{'select': selects, 'number': numbers,
+        'template': [{'select': selects, 'number': numbers, 'sensor': sensors,
             'binary_sensor': [{'name': 'Aldes Pilot Commandes disponibles', 'unique_id': 'aldes_pilot_rest_commands_ready', 'state': COMMAND_READY, 'attributes': {'attente_secondes': "{{ state_attr('sensor.aldes_pilot_rapport', 'cooldown_s') | int(0) }}"}}],
             'button': [{'name': 'Aldes Pilot Annuler vacances', 'unique_id': 'aldes_pilot_rest_vacation_clear',
                 'availability': AVAILABLE, 'press': action('vacation_clear', {})}]}]}

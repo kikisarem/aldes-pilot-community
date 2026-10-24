@@ -35,7 +35,26 @@ class ReaderTests(unittest.TestCase):
         self.assertTrue(page['available'])
         self.assertIsNone(page['decoded']['pac_clock_local'])
         self.assertIn('clock_error', page['decoded'])
-        self.assertEqual([z['setpoint_c'] for z in page['decoded']['zones']], [0]*4)
+        self.assertEqual(page['decoded']['zones'], [])
+
+    def test_only_populated_zones_are_returned(self):
+        self.frame[13:15] = (2100).to_bytes(2, 'little')
+        self.frame[53:55] = (2143).to_bytes(2, 'little')
+        self.frame[13+2*8:15+2*8] = (1900).to_bytes(2, 'little')
+        self.frame[53+2*8:55+2*8] = (1850).to_bytes(2, 'little')
+        self.frame[-1] = (-sum(self.frame[:-1])) % 256
+        self.head = '[collector] synthetic start\n'+status(900)+chunk(1, 1000, self.frame[:64])
+        page = self.read(chunk(2, 1001, self.frame[64:]))['pages']['21']
+        self.assertEqual([zone['zone'] for zone in page['decoded']['zones']], ['K1', 'K9'])
+        self.assertEqual(page['decoded']['zones'][0]['setpoint_c'], 21)
+        self.assertEqual(page['decoded']['zones'][0]['temperature_candidate_c'], 21.43)
+        self.assertEqual(page['decoded']['zones'][1]['setpoint_c'], 19)
+        self.assertEqual(page['decoded']['zones'][1]['temperature_candidate_c'], 18.5)
+        slots = page['decoded']['zone_slots']
+        self.assertEqual(len(slots), 9)
+        self.assertEqual((slots[0]['zone'], slots[0]['active'], slots[0]['setpoint_raw'], slots[0]['temperature_raw']), ('K1', True, 2100, 2143))
+        self.assertEqual((slots[1]['zone'], slots[1]['active'], slots[1]['setpoint_raw'], slots[1]['temperature_raw']), ('K2', False, 0, 0))
+        self.assertEqual((slots[8]['zone'], slots[8]['active'], slots[8]['setpoint_raw'], slots[8]['temperature_raw']), ('K9', True, 1900, 1850))
 
     def test_reset_between_fragments(self):
         self.assertNotIn('21', self.read('[1001] USB bus reset\n'+chunk(2, 1002, self.frame[64:]))['pages'])
