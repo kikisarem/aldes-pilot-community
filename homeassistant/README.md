@@ -37,8 +37,8 @@ https://github.com/tiagfernandes/aldes-pilot-community#beta/home-assistant-addon
 1. Ouvrez **Paramètres → Applications → Installer une application** (le libellé peut varier selon la version de Home Assistant).
 2. Dans le menu ⋮, choisissez **Dépôts**, collez l’URL ci-dessus, puis ajoutez le dépôt **Aldes Pilot Beta**.
 3. Recherchez **Aldes Pilot** dans la boutique et installez-le. La première construction télécharge Python et les dépendances ; **elle n’exige pas le SDK Pico**.
-4. Dans la configuration de l’add-on, donnez un nom clair à cette PAC, par exemple `PAC rez-de-chaussée`, puis renseignez `pico_host` et `control_token`. Ces options sont privées.
-5. Démarrez Mosquitto et l’intégration MQTT. L’add-on récupère les identifiants du service MQTT auprès du Supervisor, sans les écrire dans l’image.
+4. Installez/démarrez Mosquitto Broker, créez un utilisateur dédié au bridge, puis configurez l’intégration **MQTT** de Home Assistant pour se connecter au même broker.
+5. Dans la configuration de l’add-on, donnez un nom à la PAC, renseignez `pico_host` et `control_token`, puis les paramètres MQTT : `mqtt_host` (par défaut `core-mosquitto`), `mqtt_port` (par défaut `1883`), `mqtt_username` et `mqtt_password`. Activez `mqtt_ssl` uniquement si votre broker exige TLS. Home Assistant et l’add-on doivent pointer vers le même broker. Les identifiants restent dans la configuration privée de l’add-on.
 6. Arrêtez tout ancien bridge utilisant le même Pico, démarrez cet add-on et activez son démarrage automatique.
 7. Ouvrez son interface via Home Assistant. L’ingress gère l’accès à la page ; aucun port web n’est publié sur le réseau par défaut.
 
