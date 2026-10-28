@@ -339,6 +339,9 @@ class Pilot:
                     if not current_prefix or max(item['updated'] for _, item in current_prefix) + debounce > time.monotonic():
                         continue
                     batch_commands = [(pending_key, dict(item)) for pending_key, item in current_prefix]
+                    # State inspection releases the queue lock. A command may
+                    # have been replaced meanwhile, including a one-item batch.
+                    key, command = batch_commands[0]
                     if setpoint_batch:
                         batch_values = {item['zone']: item['value'] for _, item in current_prefix}
                     else:
