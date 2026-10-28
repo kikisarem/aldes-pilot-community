@@ -185,7 +185,7 @@ def main():
  client=mqtt.Client(mqtt.CallbackAPIVersion.VERSION2,client_id=identity,clean_session=True)
  if config.get('username') and config.get('password'):
   client.username_pw_set(config['username'],config['password'])
- client.will_set(base+'/availability','offline',qos=1,retain=True)
+ # MQTT permits one last will; use the topic consumed by discovery entities.
  client.will_set(base+'/read_availability','offline',qos=1,retain=True)
  if config.get('ssl'):client.tls_set()
  connected=threading.Event();read_ready=threading.Event()
@@ -277,6 +277,9 @@ def main():
       publish_discovery(zones,air_mode)
      for key,value in values.items():client.publish(base+'/'+key+'/state',value,qos=0,retain=False)
      client.publish(base+'/read_availability','online',qos=1,retain=True)
+    else:
+     read_ready.clear()
+     client.publish(base+'/read_availability','offline',qos=1,retain=True)
     client.publish(base+'/availability','online',qos=1,retain=True)
    else:
      read_ready.clear()
