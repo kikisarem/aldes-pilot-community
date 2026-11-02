@@ -29,7 +29,7 @@ def package():
             'state': "{% set v = (state_attr('" + REPORT + "', '" + key + "') or {}).get('actual') %}{{ " + values + "[v] if v is integer and 0 <= v < " + str(len(options)) + " else none }}",
             'select_option': action(key, {'mode': '{{ ' + values + '.index(option) }}'})})
     numbers = []
-    for zone in range(1, 5):
+    for zone in range(1, 7):
         numbers.append({'name': f'Aldes Pilot Consigne K{zone}', 'unique_id': f'aldes_pilot_rest_k{zone}',
             'availability': AVAILABLE, 'optimistic': False, 'min': 16, 'max': 30, 'step': 0.5, 'unit_of_measurement': '°C',
             'state': "{{ ((state_attr('" + REPORT + "', 'zones') or {}).get('" + str(zone) + "') or {}).get('actual') }}",

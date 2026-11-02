@@ -35,7 +35,7 @@ class ReaderTests(unittest.TestCase):
         self.assertTrue(page['available'])
         self.assertIsNone(page['decoded']['pac_clock_local'])
         self.assertIn('clock_error', page['decoded'])
-        self.assertEqual([z['setpoint_c'] for z in page['decoded']['zones']], [0]*4)
+        self.assertEqual([z['setpoint_c'] for z in page['decoded']['zones']], [0]*6)
 
     def test_reset_between_fragments(self):
         self.assertNotIn('21', self.read('[1001] USB bus reset\n'+chunk(2, 1002, self.frame[64:]))['pages'])

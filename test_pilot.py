@@ -40,7 +40,7 @@ class IntegrationTests(unittest.TestCase):
    path.write_text('');self.assertFalse(read_state(path)['available'])
    self.log(path,self.frame(air=8));self.assertEqual(read_state(path)['decoded']['air']['raw'],8)
  def test_command_masks(self):
-  f=frame_vacation_clear();self.assertEqual(f[5:13],bytes(8));self.assertEqual(f[13:21],b'\xff'*8);self.assertEqual(f[81:83],b'\xff\xff');self.assertEqual(sum(f)%256,0)
+  f=frame_vacation_clear();self.assertEqual(f[5:13],bytes(8));self.assertEqual(f[13:25],b'\xff'*12);self.assertEqual(f[81:83],b'\xff\xff');self.assertEqual(sum(f)%256,0)
   for mode in range(9):
    f=frame_air(mode);self.assertEqual(f[81],mode);self.assertEqual(f[5:13],b'\xff'*8);self.assertEqual(f[82],255);self.assertEqual(sum(f)%256,0)
   for mode in range(3):
