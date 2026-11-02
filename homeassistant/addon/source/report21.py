@@ -12,7 +12,7 @@ def decode21(data):
   raw=int.from_bytes(data[53+2*i:55+2*i],'little')
   zones.append({'zone':f'K{i+1}','name':name,
    'setpoint_c':int.from_bytes(data[13+2*i:15+2*i],'little')/100,
-   'setpoint_validation':('Reference installation: USB readback roundtrip confirmed' if i < 4 else 'Community K5/K6 mapping; hardware readback confirmation pending'),
+   'setpoint_validation':('Reference installation: USB readback roundtrip confirmed' if i < 4 else 'Community six-zone IHM/thermostat readback reported; reference hardware validation pending (see VALIDATION.md)'),
    'temperature_candidate_c':None if raw==65535 else int.from_bytes(data[53+2*i:55+2*i],'little',signed=True)/100,
    'temperature_validation':'Layout candidate; physical zone/value confirmation pending'})
  return {'zones':zones,'air':{'raw':data[81],'label':AIR.get(data[81],'Mode non validé')},

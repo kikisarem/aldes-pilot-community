@@ -1,5 +1,35 @@
 # Qualification au 11 septembre 2026
 
+## Retours communautaires — 2 novembre 2026
+
+Contribution K5/K6 : arreus / Yanis, PR [#2](https://github.com/kikisarem/aldes-pilot-community/pull/2).
+Retour déclaratif du contributeur, pas une reproduction locale indépendante :
+
+- Versions initiales rapportées : IHM 198 / TOP 8138 / BOT 03 (notation du contributeur).
+- Après mise à jour Aldes V17 : IHM `0x19B`, régulateur `0x813A`.
+- Consignes K1–K6 : modification individuelle, retour IHM et thermostat,
+  absence d'effet sur les autres zones rapportées avec le correctif c567974.
+- Changements de thermostats et modes air/ECS remontés ; températures comparées
+  à l'IHM, avec écart d'arrondi pouvant atteindre 0,1 °C.
+- Demi-degrés arrondis au degré supérieur sur IHM/thermostats : conserver
+  demande et retour distincts, ne pas promettre une précision effective de 0,5 °C.
+- Zéro puis réactivation testés sur chaque zone avant V17 ; pas de nouvelle
+  confirmation spécifique du zéro après V17. Un autre contributeur (RD13)
+  signale un arrêt sans effet sur K1 : zéro non adopté comme commande générique.
+- Jauge ECS offset 73 : 24/25 = une barre, 50 = deux, 75 = trois, 100 = quatre.
+- Vacances et intégration REST non testées chez le contributeur ; modèle exact
+  de PAC encore à préciser. K7–K9 non qualifiées.
+
+Le rapport privé n'est pas publié intégralement. La PR publique et le correctif
+préexistant sont intégrés avec les crédits d'origine ; aucune commande PAC,
+aucun reflash, aucun déploiement ni modification de la production lors de
+cette intégration. Contrôles logiciels : 50 tests Python et cinq scénarios
+Jinja de disponibilité. Le packaging synchronise les sources de l'add-on.
+
+RD13 apporte des croisements IHM des pages 23/24 et des compteurs 25–28 :
+voir [COMMUNITY_PROTOCOL.md](COMMUNITY_PROTOCOL.md). Les blocages sur 4A et
+l'absence de rafraîchissement empêchent d'en faire une télémétrie permanente.
+
 ## Zone K2 sans consigne — confirmation du 13 septembre 2026
 
 Observation passive sur l'installation de référence le 12 septembre, puis

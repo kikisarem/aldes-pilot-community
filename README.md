@@ -16,7 +16,26 @@ Interface web expérimentale pour un bridge USB Pico W. Elle affiche les consign
 
 Les températures candidates ne sont pas présentées comme des mesures de pièces : leur correspondance physique reste à vérifier. Éditer les plages hebdomadaires ou écrire de nouvelles dates de vacances n’est pas encore pris en charge. La persistance d’une nouvelle consigne sur plusieurs heures reste à qualifier. La compatibilité avec d’autres versions de PAC n’est pas garantie par les essais sur une seule installation.
 
-## Architecture
+## Retours communautaires — 2 novembre 2026
+
+K5/K6 sont désormais pris en charge dans le lecteur, les commandes, l'interface,
+MQTT et le package REST (contribution de **arreus / Yanis**, PR #2, avec
+correctif du générateur REST). Les essais communautaires confirment les six
+zones sur une seconde installation, avant et après mise à jour Aldes V17.
+Ils ne constituent pas un test matériel K5/K6 sur l'installation de référence.
+Les essais REST et vacances restent non réalisés chez le contributeur.
+
+Attention : une consigne en demi-degré peut être arrondie au degré supérieur
+sur l'IHM et les thermostats. Le logiciel conserve l'état réellement relu,
+sans promettre une régulation au demi-degré. L'arrêt par zéro n'est pas
+généralisable : succès rapporté sur six zones, mais absence d'effet K1 sur
+une autre installation ; les commandes restent limitées à la plage existante.
+
+Voir [les qualifications communautaires](VALIDATION.md#retours-communautaires--2-novembre-2026)
+et [les relevés de pages de RD13](COMMUNITY_PROTOCOL.md). Ces relevés ne
+déclenchent aucun parcours de pages automatique ni nouveau capteur en production.
+
+## Architecture du bridge
 
 Le collecteur existant reçoit les logs RAW du bridge. `readback.py` lit une fenêtre bornée du fichier, réassemble les transferts, contrôle la somme puis décode le rapport `0x21`. `GET /api/state` ne se connecte jamais au Pico. La page relit cette API toutes les quatre secondes ; la cadence observée des rapports PAC est d’environ vingt secondes.
 
@@ -79,7 +98,9 @@ Offsets comptés depuis zéro dans une trame complète. Rapport local `0x21` : 9
 | 5–8 | Départ vacances | DOS/FAT 32 bits, little endian ; zéro = absent |
 | 9–12 | Retour vacances | Même format |
 | 13–20 | Consignes K1 à K4 | Quatre entiers 16 bits little endian / 100 |
+| 21–24 | Consignes K5 et K6 | Deux entiers 16 bits little endian / 100 ; essais communautaires |
 | 53–60 | Températures candidates | Identité physique des sondes non validée |
+| 61–64 | Températures candidates K5/K6 | Correspondance IHM rapportée sur l'installation communautaire |
 | 77–80 | Horloge PAC | DOS/FAT ; ne pas assimiler au temps hôte |
 | 81 | Mode air | 0 à 8, table ci-dessous |
 | 82 | Mode ECS | 0 arrêt, 1 marche, 2 Boost |
@@ -90,7 +111,8 @@ dans le rapport de lecture `0x21`, `00 00` aux offsets 15–16 correspond à
 l'utilisateur. Ce n'est pas une température ambiante de 0 °C ni une demande de
 refroidissement à 0 °C. Voir les preuves et limites dans [VALIDATION.md](VALIDATION.md#zone-k2-sans-consigne--confirmation-du-13-septembre-2026).
 Ne pas généraliser ce résultat à toutes les zones/versions ni en déduire qu'une
-**écriture** à zéro permet de désactiver une zone : cette commande n'a pas été testée.
+**écriture** à zéro permet de désactiver toutes les zones : les retours
+communautaires divergent et cette commande reste interdite par ce bridge.
 Le décodeur expose encore la valeur brute divisée par 100 (`setpoint_c: 0.0`) ;
 le rendu « Sans consigne » dans les interfaces reste à implémenter.
 
