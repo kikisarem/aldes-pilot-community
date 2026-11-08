@@ -48,6 +48,7 @@ Pour MQTT, les entités découvertes apparaissent dans HA. Le diagnostic web est
 - Sélecteur ECS : OFF, ON, Boost.
 - Quatre nombres : consignes K1–K4, de 16 à 30 °C par pas de 0,5 °C.
 - Bouton : annuler les vacances / hors gel. La création de nouvelles dates n’est pas proposée.
+- Capteur « Jauge ECS » (%) : jauge d’eau chaude du rapport 21 (25/50/75/100 % = 1 à 4 barres sur l’IHM), lecture seule.
 
 Les états viennent exclusivement du rapport21. Modifier l’IHM se répercute sur HA après réception du rapport (cadence observée proche de 20 secondes). Pas d’état optimiste ni de réconciliation automatique. Températures candidates non exposées tant que les sondes physiques ne sont pas confirmées.
 

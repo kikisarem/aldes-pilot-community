@@ -45,6 +45,10 @@ python3 firmware/workbench.py --host ADRESSE_PICO status
 
 Attendu : protocole `WORKBENCH 1`, authentification acceptée, `tx_timeout_ms=90000`, désarmé (`armed=0`). L’état USB monté dépend de l’hôte auquel le Pico est branché. Ensuite relier le Pico à la PAC et démarrer **un seul** collecteur.
 
+Sur macOS (Apple Silicon), le volume `RPI-RP2` n’est pas monté tant que l’écran du Mac est en veille ou verrouillé : `diskarbitrationd` refuse le montage et éjecte le disque. Réveiller l’écran avant de brancher en BOOTSEL.
+
+**Branchement sur la PAC — hôte USB énuméré seulement au démarrage (retour du 8 novembre 2026, T.One AquaAIR 04).** Branché à chaud, le Pico est resté `mounted=0` pendant plus d’une heure avec tous les compteurs à zéro (`GET_LC=0 SET_LC=0 … OUT xfer=0`) : la PAC n’a émis aucune requête de contrôle, quel que soit le câble. Après coupure des disjoncteurs des unités intérieure et extérieure pendant 60 s, `mounted=1` est apparu environ 30 s après la remise sous tension et la reprise automatique a conduit au rapport 21 en quelques minutes, sans écriture. Conséquences : tout rebranchement du Pico demande un redémarrage de la PAC ; la PAC perd son horloge à la coupure, à ressaisir ensuite sur l’IHM. Observation sur une installation ; à confirmer ailleurs.
+
 Le firmware reste en mémoire flash après débranchement et redémarrage. Il n’a pas d’expiration 24 h. Les temporisations de 30 s d’armement et 90 s de transfert sont des garde-fous par commande, pas une durée de vie du firmware. Le boot n’envoie aucune commande applicative automatiquement.
 
 ## 3. Installer la page et le collecteur
