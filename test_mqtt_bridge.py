@@ -2,9 +2,11 @@ import unittest
 from mqtt_bridge import discovery,parse_command,observed,AIR,ECS
 class MQTTTests(unittest.TestCase):
  def test_discovery_observed_and_commands_nonretained(self):
-  d=discovery('test');self.assertEqual(len(d),9)
+  d=discovery('test');self.assertEqual(len(d),10)
   for topic,c in d.items():
-   self.assertFalse(c['retain']);self.assertEqual(c['qos'],0);self.assertEqual(c['availability_topic'],'aldes_pilot/test/availability')
+   self.assertEqual(c['qos'],0);self.assertEqual(c['availability_topic'],'aldes_pilot/test/availability')
+   if '/sensor/' in topic:self.assertNotIn('command_topic',c);self.assertNotIn('retain',c);self.assertIn('state_topic',c);continue
+   self.assertFalse(c['retain'])
    if '/button/' not in topic:self.assertFalse(c['optimistic']);self.assertIn('state_topic',c)
  def test_modes_and_programs(self):
   for i,label in enumerate(AIR):self.assertEqual(parse_command('air',label.encode()),('/api/air',{'mode':i}))
@@ -16,5 +18,11 @@ class MQTTTests(unittest.TestCase):
   s={'available':True,'air':{'actual':5,'requested':0},'ecs':{'actual':1},'zones':{str(z):{'actual':24 if z==1 else 22} for z in range(1,7)}}
   self.assertEqual(observed(s)['air'],'Clim Confort');self.assertEqual(observed(s)['k1'],'24')
   s['available']=False;self.assertIsNone(observed(s));s['available']=True;s['recovery']={'status':'recovering'};self.assertIsNone(observed(s))
+ def test_ecs_level_optional(self):
+  s={'available':True,'air':{'actual':1},'ecs':{'actual':1},'zones':{str(z):{'actual':20} for z in range(1,7)}}
+  self.assertNotIn('ecs_level',observed(s))
+  s['observation']={'decoded':{'ecs_level':{'raw':75,'percent':75}}};self.assertEqual(observed(s)['ecs_level'],'75')
+  s['observation']['decoded']['ecs_level']['percent']=250;self.assertNotIn('ecs_level',observed(s))
+  self.assertNotIn('ecs_level',observed({**s,'observation':{}}))
  def test_half_degrees(self):self.assertEqual(parse_command('k4',b'22.5'),('/api/setpoint',{'zone':4,'temperature':22.5}))
 if __name__=='__main__':unittest.main()

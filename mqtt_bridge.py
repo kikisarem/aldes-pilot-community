@@ -11,9 +11,12 @@ def discovery(identity):
   rows.append(('select',key,{'name':'Mode '+key.upper(),'options':options,'optimistic':False}))
  for zone in range(1,7):rows.append(('number','k'+str(zone),{'name':f'Consigne K{zone}','min':16,'max':30,'step':.5,'mode':'box','unit_of_measurement':'°C','optimistic':False}))
  rows.append(('button','vacation_clear',{'name':'Annuler vacances / hors gel','payload_press':'CLEAR'}))
+ # Jauge ECS du rapport 0x21 (offset 73) : lecture seule, 25/50/75/100 % = 1 à 4 barres sur l'IHM.
+ rows.append(('sensor','ecs_level',{'name':'Jauge ECS','unit_of_measurement':'%','icon':'mdi:water-boiler','state_class':'measurement'}))
  result={}
  for component,key,extra in rows:
-  cfg={'unique_id':identity+'_'+key,'device':device,'availability_topic':base+'/availability','command_topic':base+'/'+key+'/set','qos':0,'retain':False,**extra}
+  cfg={'unique_id':identity+'_'+key,'device':device,'availability_topic':base+'/availability','qos':0,**extra}
+  if component!='sensor':cfg.update(command_topic=base+'/'+key+'/set',retain=False)
   if component!='button':cfg['state_topic']=base+'/'+key+'/state'
   result[f'homeassistant/{component}/{identity}/{key}/config']=cfg
  return result
@@ -41,6 +44,10 @@ def observed(s):
   v=s['zones'][str(z)]['actual']
   if not isinstance(v,(int,float)) or not math.isfinite(v):return None
   out['k'+str(z)]=str(v)
+ level=((s.get('observation') or {}).get('decoded') or {}).get('ecs_level') or {}
+ p=level.get('percent')
+ # Absente ou hors plage : on n'invente rien, le capteur reste simplement sans état.
+ if isinstance(p,(int,float)) and math.isfinite(p) and 0<=p<=100:out['ecs_level']=str(int(p))
  return out
 
 def api(path,body=None):

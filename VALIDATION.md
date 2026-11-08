@@ -30,6 +30,30 @@ RD13 apporte des croisements IHM des pages 23/24 et des compteurs 25–28 :
 voir [COMMUNITY_PROTOCOL.md](COMMUNITY_PROTOCOL.md). Les blocages sur 4A et
 l'absence de rafraîchissement empêchent d'en faire une télémétrie permanente.
 
+## Retours communautaires — 8 novembre 2026
+
+Seconde installation indépendante, retour déclaratif ([issue #3](https://github.com/kikisarem/aldes-pilot-community/issues/3)) :
+T.One AquaAIR 04 (code 35001170), cinq thermostats 35001151 (K1–K5, K6 lu à 0,0),
+Pico W RP2040 Waveshare, firmware lc00 compilé localement (SDK 2.3.1, Arm 14.2.Rel1),
+Home Assistant OS 18.3 aarch64 avec l’add-on.
+
+- Hôte USB de la PAC énuméré uniquement à la mise sous tension : branchement à chaud
+  sans effet pendant plus d’une heure (`mounted=0`, compteurs à zéro) ; après coupure
+  de 60 s, `mounted=1` en ~30 s puis reprise 20/25/26/27/28 → 21 sans écriture.
+  Horloge de la PAC perdue à la coupure.
+- Lecture : modes air/ECS, K1–K5, jauge ECS (75 % → 50 % après une douche) conformes
+  à l’IHM ; changements IHM/thermostats visibles en 5–20 s.
+- Écriture depuis HA avec readback conforme et IHM conforme : ECS Arrêt → Marche,
+  consignes K1 et K5 (latence ~60–65 s, entités indisponibles pendant la commande et
+  le cooldown, comme documenté). Mode air Arrêt → Chauffage Confort depuis l’IHM remonté.
+- Thermostats 35001151 : afficheur « A » et consigne non modifiable tant que le mode
+  air est Arrêt ; cartographie des zones validée uniquement par changement de consigne.
+- Intégration : entités `climate` par zone déclarées par découverte MQTT par-dessus
+  les topics de l’add-on (mode en lecture seule) pour les assistants LLM ; la jauge
+  ECS publiée comme capteur (désormais intégrée dans `mqtt_bridge.py`).
+
+Aucune reproduction locale sur l’installation de référence pour ce retour.
+
 ## Zone K2 sans consigne — confirmation du 13 septembre 2026
 
 Observation passive sur l'installation de référence le 12 septembre, puis
